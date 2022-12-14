@@ -7,8 +7,6 @@ export default class Game extends Phaser.Scene
   {
     super('game')
 
-    this.fps           = 60   // how many 'update' frames per second
-    this.step          = 1/this.fps  // how long is each frame (in seconds)
     this.segments      = []   // array of road segments
     this.background    = null // our background image
     this.sprites       = null // our spritesheet
@@ -27,10 +25,10 @@ export default class Game extends Phaser.Scene
     this.playerX       = 0    // player x offset from center of road (-1 to 1 to stay independent of roadWidth)
     this.playerY       = 0
     this.playerZ       = this.cameraHeight * this.cameraDepth + 200 // player relative z distance from camera (computed)
-    this.fogDensity    = 2    // exponential fog density
+    this.fogDensity    = 1    // exponential fog density
     this.position      = 0    // current camera Z position (add playerZ to get player's absolute Z position)
     this.speed         = 0    // current speed
-    this.maxSpeed      = this.segmentLength/this.step // top speed (ensure we can't move more than 1 segment in a single frame to make collision detection easier)
+    this.maxSpeed      = this.segmentLength * 60 // top speed (ensure we can't move more than 1 segment in a single frame to make collision detection easier)
     this.accel         =  this.maxSpeed/5  // acceleration rate - tuned until it 'felt' right
     this.breaking      = -this.maxSpeed    // deceleration rate when braking
     this.decel         = -this.maxSpeed/5  // 'natural' deceleration rate when neither accelerating, nor braking
@@ -92,9 +90,9 @@ export default class Game extends Phaser.Scene
       TREE: 0x005108,
       FOG:  0x5692DB,
       LIGHT:  { road: 0x6B6B6B, grass: 0x10AA10, rumble: 0x555555, lane: 0xCCCCCC  },
-      DARK:   { road: 0x696969, grass: 0x009A00, rumble: 0xBBBBBB                   },
-      START:  { road: 0xFFFFFF,   grass: 0x10AA10,   rumble: 0xFFFFFF                     },
-      FINISH: { road: 0x000000,   grass: 0x10AA10,   rumble: 0x000000                     }
+      DARK:   { road: 0x696969, grass: 0x009A00, rumble: 0xBBBBBB                  },
+      START:  { road: 0xFFFFFF,   grass: 0x10AA10,   rumble: 0xFFFFFF              },
+      FINISH: { road: 0x000000,   grass: 0x10AA10,   rumble: 0x000000              }
     }
 
     this.road         = {
@@ -104,6 +102,9 @@ export default class Game extends Phaser.Scene
     }
 
     this.puffs = null
+
+    this.atlasTexture   = null
+    this.frameNames     = null
   }
 
   init ()
@@ -113,6 +114,10 @@ export default class Game extends Phaser.Scene
 
   create ()
   {
+
+    this.atlasTexture   = this.textures.get('atlas')
+    this.frameNames     = this.atlasTexture.getFrameNames()
+    console.log(this.frameNames)
 
     this.debugHUD = this.scene.get('debug-hud')
 
@@ -133,22 +138,15 @@ export default class Game extends Phaser.Scene
     })
     this.puffs.setDepth(2003)
 
-    this.cursors = this.input.keyboard.createCursorKeys()
-    this.keys = this.input.keyboard.addKeys('Q,W,A,S,D')
-
     if (this.debugOn)
     {
       this.debugShade = this.add.text(201, 201, 'DEBUG', { color: '#000000', fontSize: '20px' }).setDepth(1999)
       this.debug = this.add.text(200, 200, 'DEBUG', { color: '#ff0000', fontSize: '20px' }).setDepth(2000)
     }
 
-    // console.log(this.playerZ)
-    // console.log(this.cameraDepth)
-
     this.gfx = this.add.graphics()
 
     this.resetRoad()
-    // this.resetSprites()
 
     // delay drive start
     if (this.autoDrive)
@@ -163,11 +161,14 @@ export default class Game extends Phaser.Scene
       })
     }
     
+    // Zoom in camera to hide my bad programming
     this.cameras.main.setZoom(1.2)
-    // this.cameraAngle = Phaser.Math.Clamp(this.cameraAngle, -6, 6)
 
     
     // this.scene.run('debug-hud')
+
+    this.cursors = this.input.keyboard.createCursorKeys()
+    this.keys = this.input.keyboard.addKeys('Q,W,E,A,S,D')
 
     this.keys.Q.on('up', () => {
       if (this.scene.isActive('debug-hud'))
@@ -178,6 +179,10 @@ export default class Game extends Phaser.Scene
       {
         this.scene.run('debug-hud')
       }
+    })
+
+    this.keys.E.on('up', () => {
+      this.resetRoad()
     })
     
   }
@@ -216,34 +221,16 @@ export default class Game extends Phaser.Scene
       this.keySlower  = this.cursors.down.isDown
     }
 
-    // get current time
-    let now = Util.timestamp()
+    // game loop
+    this.gfx.clear()
+    this.clearSprites()
+    this.Render.all()
+    this.playerUpdate(delta / 1000)
 
-    // delta time
-    let dt = Math.min(1, (now - this.last) / 1000)
-
-    // new dt
-    let ndt = delta / 1000
-
-    // "graphics" delta time?
-    this.gdt += dt
-
-    while (this.gdt > this.step) {
-      this.gdt -= this.step
+    if (this.debugOn)
+    {
+      this.drawDebug(time, delta, ndt)
     }
-
-      // game loop
-      this.gfx.clear()
-      this.clearSprites() // delete and load all images again lol
-      this.Render.all()
-      this.playerUpdate(ndt)
-
-      if (this.debugOn)
-      {
-        this.drawDebug(time, delta, ndt)
-      }
-    // }
-    this.last = Util.timestamp()
   }
 
   drawDebug (time, delta, dt)
@@ -400,27 +387,18 @@ export default class Game extends Phaser.Scene
 
   addSprite (n, sprite, offset)
   {
-    if (typeof this.segments[n].sprites !== 'undefined')
-    {
-      this.segments[n].sprites.push({ source: sprite, offset: offset })
-    }
+    let randomFrame = this.frameNames[Util.randomInt(0, this.frameNames.length - 1)]
+    this.segments[n].sprites.push({ source: sprite, frame: randomFrame, offset: offset })
   }
 
   resetSprites()
   {
-  
-    let n
-    for(n = 0 ; n < this.segments.length - 5 ; n += 5) {
-
-      if (n < this.segments.length - 5)
-      {
-        this.addSprite(n + Util.randomInt(0,5), 'tree', 2.1 + (Math.random() * 25))
-        this.addSprite(n + Util.randomInt(0,5), 'tree', -2.1 - (Math.random() * 25))
-        this.addSprite(n + Util.randomInt(0,5), 'tree', 1.1 + (Math.random() * 5))
-        this.addSprite(n + Util.randomInt(0,5), 'tree', -1.1 - (Math.random() * 5))
-      }
+    for(let n = 0 ; n < this.segments.length - 5 ; n += 5) {
+      this.addSprite(n + Util.randomInt(0,5), 'atlas', 2.1 + (Math.random() * 25))
+      this.addSprite(n + Util.randomInt(0,5), 'atlas', -2.1 - (Math.random() * 25))
+      this.addSprite(n + Util.randomInt(0,5), 'atlas', 1.1 + (Math.random() * 5))
+      this.addSprite(n + Util.randomInt(0,5), 'atlas', -1.1 - (Math.random() * 5))
     }
-  
   }
 
   addHill (num, height)

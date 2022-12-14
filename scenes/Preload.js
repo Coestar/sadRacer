@@ -28,6 +28,7 @@ export default class Preload extends Phaser.Scene
     this.load.image('car', 'assets/car.png')
     this.load.image('tree', 'assets/tree.png')
     this.load.image('puff', 'assets/puff.png')
+    this.load.atlas('atlas', 'assets/atlas_test.png', 'assets/atlas_test.json')
   }
 
   progressDisplay ()
