@@ -401,79 +401,6 @@ export default class Game extends Phaser.Scene
     }
   }
 
-  addHill (num, height)
-  {
-    num    = num    || this.road.LENGTH.MEDIUM
-    height = height || this.road.HILL.MEDIUM
-    this.addRoad(num, num, num, 0, height)
-  }
-
-  addHillCurveRight (num, height)
-  {
-    num    = num    || this.road.LENGTH.MEDIUM
-    height = height || this.road.HILL.MEDIUM
-    this.addRoad(num, num, num, this.road.CURVE.MEDIUM, height)
-  }
-
-  addHillCurveLeft (num, height)
-  {
-    num    = num    || this.road.LENGTH.MEDIUM
-    height = height || this.road.HILL.MEDIUM
-    this.addRoad(num, num, num, -this.road.CURVE.MEDIUM, height)
-  }
-
-  addLowRollingHills (num, height)
-  {
-    num    = num    || this.road.LENGTH.SHORT
-    height = height || this.road.HILL.LOW
-    this.addRoad(num, num, num,  0,  height/2)
-    this.addRoad(num, num, num,  0, -height)
-    this.addRoad(num, num, num,  0,  height)
-    this.addRoad(num, num, num,  0,  0)
-    this.addRoad(num, num, num,  0,  height/2)
-    this.addRoad(num, num, num,  0,  0)
-  }
-
-  addDownhillToEnd (num)
-  {
-    num = num || 200
-    this.addRoad(num, num, num, 0, -Math.round(this.lastY()/this.segmentLength))
-  }
-
-  addLeftDownhillToEnd (num)
-  {
-    num = num || 200
-    this.addRoad(num, num, num, -this.road.CURVE.MEDIUM, -Math.round(this.lastY()/this.segmentLength))
-  }
-
-  addRightDownhillToEnd (num)
-  {
-    num = num || 200
-    this.addRoad(num, num, num, this.road.CURVE.MEDIUM, -Math.round(this.lastY()/this.segmentLength))
-  }
-
-  addStraight (num)
-  {
-    num = num || this.road.LENGTH.MEDIUM
-    this.addRoad(num, num, num, 0)
-  }
-
-  addCurve (num, curve)
-  {
-    num    = num    || this.road.LENGTH.MEDIUM;
-    curve  = curve  || this.road.CURVE.MEDIUM;
-    this.addRoad(num, num, num, curve);
-  }
-  
-  addSCurves ()
-  {
-    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,  -this.road.CURVE.EASY);
-    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,   this.road.CURVE.MEDIUM);
-    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,   this.road.CURVE.EASY);
-    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,  -this.road.CURVE.EASY);
-    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,  -this.road.CURVE.MEDIUM);
-  }
-
   playerUpdate (dt)
   {
 
@@ -552,6 +479,79 @@ export default class Game extends Phaser.Scene
   findSegment(z)
   {
     return this.segments[Math.floor(z/this.segmentLength) % this.segments.length];
+  }
+
+  addHill (num, height)
+  {
+    num    = num    || this.road.LENGTH.MEDIUM
+    height = height || this.road.HILL.MEDIUM
+    this.addRoad(num, num, num, 0, height)
+  }
+
+  addHillCurveRight (num, height)
+  {
+    num    = num    || this.road.LENGTH.MEDIUM
+    height = height || this.road.HILL.MEDIUM
+    this.addRoad(num, num, num, this.road.CURVE.MEDIUM, height)
+  }
+
+  addHillCurveLeft (num, height)
+  {
+    num    = num    || this.road.LENGTH.MEDIUM
+    height = height || this.road.HILL.MEDIUM
+    this.addRoad(num, num, num, -this.road.CURVE.MEDIUM, height)
+  }
+
+  addLowRollingHills (num, height)
+  {
+    num    = num    || this.road.LENGTH.SHORT
+    height = height || this.road.HILL.LOW
+    this.addRoad(num, num, num,  0,  height/2)
+    this.addRoad(num, num, num,  0, -height)
+    this.addRoad(num, num, num,  0,  height)
+    this.addRoad(num, num, num,  0,  0)
+    this.addRoad(num, num, num,  0,  height/2)
+    this.addRoad(num, num, num,  0,  0)
+  }
+
+  addDownhillToEnd (num)
+  {
+    num = num || 200
+    this.addRoad(num, num, num, 0, -Math.round(this.lastY()/this.segmentLength))
+  }
+
+  addLeftDownhillToEnd (num)
+  {
+    num = num || 200
+    this.addRoad(num, num, num, -this.road.CURVE.MEDIUM, -Math.round(this.lastY()/this.segmentLength))
+  }
+
+  addRightDownhillToEnd (num)
+  {
+    num = num || 200
+    this.addRoad(num, num, num, this.road.CURVE.MEDIUM, -Math.round(this.lastY()/this.segmentLength))
+  }
+
+  addStraight (num)
+  {
+    num = num || this.road.LENGTH.MEDIUM
+    this.addRoad(num, num, num, 0)
+  }
+
+  addCurve (num, curve)
+  {
+    num    = num    || this.road.LENGTH.MEDIUM;
+    curve  = curve  || this.road.CURVE.MEDIUM;
+    this.addRoad(num, num, num, curve);
+  }
+  
+  addSCurves ()
+  {
+    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,  -this.road.CURVE.EASY);
+    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,   this.road.CURVE.MEDIUM);
+    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,   this.road.CURVE.EASY);
+    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,  -this.road.CURVE.EASY);
+    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,  -this.road.CURVE.MEDIUM);
   }
   
 }
