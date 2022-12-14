@@ -27,7 +27,7 @@ export default class Game extends Phaser.Scene
     this.playerX       = 0    // player x offset from center of road (-1 to 1 to stay independent of roadWidth)
     this.playerY       = 0
     this.playerZ       = this.cameraHeight * this.cameraDepth + 200 // player relative z distance from camera (computed)
-    this.fogDensity    = 5    // exponential fog density
+    this.fogDensity    = 2    // exponential fog density
     this.position      = 0    // current camera Z position (add playerZ to get player's absolute Z position)
     this.speed         = 0    // current speed
     this.maxSpeed      = this.segmentLength/this.step // top speed (ensure we can't move more than 1 segment in a single frame to make collision detection easier)
@@ -36,7 +36,7 @@ export default class Game extends Phaser.Scene
     this.decel         = -this.maxSpeed/5  // 'natural' deceleration rate when neither accelerating, nor braking
     this.offRoadDecel  = -this.maxSpeed/2  // off road deceleration is somewhere in between
     this.offRoadLimit  =  this.maxSpeed/4  // limit when off road deceleration no longer applies (e.g. you can always go at least this speed even when off road)
-    this.centrifugal    = 0.15 // centrifugal force multiplier when going around curves
+    this.centrifugal    = 0//0.15 // centrifugal force multiplier when going around curves
     
     this.debugMaxY    = 0
 
@@ -89,8 +89,8 @@ export default class Game extends Phaser.Scene
 
     this.colors       = {
       SKY:  0x72D7EE,
-      TREE: 0x0051080,
-      FOG:  0x005108,
+      TREE: 0x005108,
+      FOG:  0x5692DB,
       LIGHT:  { road: 0x6B6B6B, grass: 0x10AA10, rumble: 0x555555, lane: 0xCCCCCC  },
       DARK:   { road: 0x696969, grass: 0x009A00, rumble: 0xBBBBBB                   },
       START:  { road: 0xFFFFFF,   grass: 0x10AA10,   rumble: 0xFFFFFF                     },
@@ -113,6 +113,9 @@ export default class Game extends Phaser.Scene
 
   create ()
   {
+
+    this.debugHUD = this.scene.get('debug-hud')
+
     this.bg_sky = this.add.image(this.cX, this.cY, 'sky')
     this.bg_clouds = this.add.tileSprite(0, 0, this.width, this.height, 'clouds').setOrigin(0)
     this.bg_hills = this.add.tileSprite(0, 0, this.width, this.height, 'hills').setOrigin(0)
@@ -131,7 +134,7 @@ export default class Game extends Phaser.Scene
     this.puffs.setDepth(2003)
 
     this.cursors = this.input.keyboard.createCursorKeys()
-    this.keys = this.input.keyboard.addKeys('W,A,S,D')
+    this.keys = this.input.keyboard.addKeys('Q,W,A,S,D')
 
     if (this.debugOn)
     {
@@ -160,8 +163,23 @@ export default class Game extends Phaser.Scene
       })
     }
     
-    this.cameras.main.setZoom(1.2)
+    // this.cameras.main.setZoom(1.5)
     // this.cameraAngle = Phaser.Math.Clamp(this.cameraAngle, -6, 6)
+
+    
+    // this.scene.run('debug-hud')
+
+    this.keys.Q.on('up', () => {
+      if (this.scene.isActive('debug-hud'))
+      {
+        this.scene.stop('debug-hud')
+      } 
+      else
+      {
+        this.scene.run('debug-hud')
+      }
+    })
+    
   }
 
   update (time, delta)

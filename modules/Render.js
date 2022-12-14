@@ -36,6 +36,8 @@ export default class Render
   
       segment         = this.scene.segments[(baseSegment.index + n) % this.scene.segments.length];
       segment.looped  = segment.index < baseSegment.index
+      
+      segment.fog     = Util.exponentialFog(n/this.scene.drawDistance, this.scene.fogDensity)
       segment.clip    = maxy
   
       Util.project(segment.p1, (playerX * roadWidth) - x, this.scene.playerY + cameraHeight, position - (segment.looped ? trackLength : 0), cameraDepth, width, height, roadWidth)
@@ -88,6 +90,7 @@ export default class Render
         y2    = segment.p2.screen.y,
         w2    = segment.p2.screen.w,
         color = segment.color,
+        fog   = segment.fog,
         r1 = this.rumbleWidth(w1, this.scene.lanes),
         r2 = this.rumbleWidth(w2, this.scene.lanes),
         l1 = this.laneMarkerWidth(w1, this.scene.lanes),
@@ -112,6 +115,8 @@ export default class Render
         this.polygon(lanex1 - l1 / 2, y1, lanex1 + l1 / 2, y1, lanex2 + l2 / 2, y2, lanex2 - l2 / 2, y2, color.lane)
       }
     }
+
+    this.fog(0, y1, sw, y2 - y1, fog)
   }
 
   polygon (x1, y1, x2, y2, x3, y3, x4, y4, color)
@@ -124,6 +129,13 @@ export default class Render
     this.scene.gfx.lineTo(x4, y4)
     this.scene.gfx.fill()
     this.scene.gfx.closePath()
+  }
+
+  fog (x, y, w, h, fog) {
+    if (fog < 1) {
+      this.scene.gfx.fillStyle(this.scene.colors.FOG, 1 - fog)
+      this.scene.gfx.fillRect(x, y, w, h)
+    }
   }
 
   rumbleWidth (projectedRoadWidth, lanes)

@@ -1,6 +1,7 @@
 
 import Preload from './scenes/Preload.js'
 import Game from './scenes/Game.js'
+import DebugHUD from './scenes/DebugHUD.js'
 
 const config = {
   type            : Phaser.AUTO,
@@ -13,8 +14,8 @@ const config = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH
   },
-  scene           : [ Preload, Game ],
-  pixelArt        : false,
+  scene           : [ Preload, Game, DebugHUD ],
+  pixelArt        : true,
   backgroundColor : 0x000000
 }
 

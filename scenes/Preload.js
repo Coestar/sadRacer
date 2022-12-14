@@ -94,7 +94,6 @@ export default class Preload extends Phaser.Scene
       this.time.addEvent({
         delay: 1000,
         callback: () => {
-          console.log('LOAD GAME')
           this.scene.start('game')
         },
         callbackScope: this,
