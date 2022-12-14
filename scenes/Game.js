@@ -163,7 +163,7 @@ export default class Game extends Phaser.Scene
       })
     }
     
-    // this.cameras.main.setZoom(1.5)
+    this.cameras.main.setZoom(1.2)
     // this.cameraAngle = Phaser.Math.Clamp(this.cameraAngle, -6, 6)
 
     
