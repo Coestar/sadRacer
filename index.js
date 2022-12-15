@@ -16,7 +16,10 @@ const config = {
   },
   scene           : [ Preload, Game, DebugHUD ],
   pixelArt        : false,
-  backgroundColor : 0x000000
+  backgroundColor : 0x000000,
+  dom             : {
+    createContainer: true
+  }
 }
 
 const game = new Phaser.Game(config)

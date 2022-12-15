@@ -1,0 +1,49 @@
+body {
+  overflow: hidden;
+  margin: 0;
+}
+
+#debugModal {
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+  border-radius: 10px;
+}
+
+.debug-hud__wrapper {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.debug-hud__item {
+  background-color:rgba(200, 200, 200, 1);
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  width: calc(100% - 10px);
+  padding: 5px;
+}
+
+.debug-hud__item label {
+  font-weight: bold;
+}
+
+.debug-hud__item input,
+.debug-hud__item button {
+  font-size: 18px;
+  padding: 5px;
+}
+
+.debug-hud__item input {
+  max-width: 70px;
+}
+
+.debug-hud__item button {
+  text-transform: uppercase;
+}
