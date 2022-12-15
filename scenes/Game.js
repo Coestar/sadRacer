@@ -28,17 +28,15 @@ export default class Game extends Phaser.Scene
     this.fogDensity    = 1    // exponential fog density
     this.position      = 0    // current camera Z position (add playerZ to get player's absolute Z position)
     this.speed         = 0    // current speed
-    this.maxSpeed      = this.segmentLength * 60 // top speed (ensure we can't move more than 1 segment in a single frame to make collision detection easier)
+    this.maxSpeed      = 12000
     this.accel         =  this.maxSpeed/5  // acceleration rate - tuned until it 'felt' right
-    this.breaking      = -this.maxSpeed    // deceleration rate when braking
+    this.braking      = -this.maxSpeed    // deceleration rate when braking
     this.decel         = -this.maxSpeed/5  // 'natural' deceleration rate when neither accelerating, nor braking
     this.offRoadDecel  = -this.maxSpeed/2  // off road deceleration is somewhere in between
     this.offRoadLimit  =  this.maxSpeed/4  // limit when off road deceleration no longer applies (e.g. you can always go at least this speed even when off road)
-    this.centrifugal    = 0//0.15 // centrifugal force multiplier when going around curves
+    this.inertia    = 0//0.15 // centrifugal force multiplier when going around curves
     
     this.debugMaxY    = 0
-
-    this.debugOn      = false
 
     this.autoDrive    = true
 
@@ -105,6 +103,12 @@ export default class Game extends Phaser.Scene
 
     this.atlasTexture   = null
     this.frameNames     = null
+
+
+    console.log('FOV:', this.fieldOfView)
+    console.log('Camera Height:', this.cameraHeight)
+    console.log('Camera Depth:', this.cameraDepth)
+    console.log('PlayerZ:', this.playerZ)
   }
 
   init ()
@@ -137,12 +141,6 @@ export default class Game extends Phaser.Scene
       on: false
     })
     this.puffs.setDepth(2003)
-
-    if (this.debugOn)
-    {
-      this.debugShade = this.add.text(201, 201, 'DEBUG', { color: '#000000', fontSize: '20px' }).setDepth(1999)
-      this.debug = this.add.text(200, 200, 'DEBUG', { color: '#ff0000', fontSize: '20px' }).setDepth(2000)
-    }
 
     this.gfx = this.add.graphics()
 
@@ -227,42 +225,21 @@ export default class Game extends Phaser.Scene
     this.Render.all()
     this.playerUpdate(delta / 1000)
 
-    if (this.debugOn)
-    {
-      this.drawDebug(time, delta, ndt)
-    }
   }
 
-  drawDebug (time, delta, dt)
+  recalcCamera()
   {
-    const debugText = [
-      // 'last: ' + this.last,
-      // 'now: ' + now,
-      'time: ' + time,
-      'delta: ' + delta,
-      'step: ' + this.step,
-      'dt: ' + dt,
-      'gdt: ' + this.gdt,
-      'this.keyLeft: ' + this.keyLeft,
-      'this.keyRight: ' + this.keyRight,
-      'this.keyFaster: ' + this.keyFaster,
-      'this.keySlower: ' + this.keySlower,
-      'this.position: ' + this.position,
-      'this.trackLength: ' + this.trackLength,
-      'this.playerX: ' + this.playerX,
-      'this.playerY: ' + this.playerY,
-      'this.playerZ: ' + this.playerZ,
-      'this.speed: ' + this.speed,
-      'this.debugMaxY: ' + this.debugMaxY,
-      'this.bg_clouds.tilePositionX: ' + this.bg_clouds.tilePositionX,
-      'this.bg_hills.tilePositionX: ' + this.bg_hills.tilePositionX,
-      'this.bg_trees.tilePositionX: ' + this.bg_trees.tilePositionX,
-      'this.bg_clouds.y: ' + this.bg_clouds.y,
-      'this.bg_hills.y: ' + this.bg_hills.y,
-      'this.bg_trees.y: ' + this.bg_trees.y
-    ]
-    this.debugShade.setText(debugText)
-    this.debug.setText(debugText)
+    this.cameraDepth = 1 / Math.tan((this.fieldOfView/2) * Math.PI/180)
+    this.playerZ = this.cameraHeight * this.cameraDepth + 200
+  }
+
+  recalcSpeeds()
+  { 
+    this.accel          =  this.maxSpeed/5
+    this.braking        = -this.maxSpeed
+    this.decel          = -this.maxSpeed/5
+    this.offRoadDecel   = -this.maxSpeed/2
+    this.offRoadLimit   =  this.maxSpeed/4
   }
 
   clearSprites ()
@@ -459,12 +436,12 @@ export default class Game extends Phaser.Scene
     this.bg_hills.tilePositionY = this.playerY * this.hillSpeed * -2
     this.bg_trees.tilePositionY = this.playerY * this.treeSpeed * -2
 
-    this.playerX = this.playerX - (dx * speedPercent * playerSegment.curve * this.centrifugal)
+    this.playerX = this.playerX - (dx * speedPercent * playerSegment.curve * this.inertia)
   
     if (this.keyFaster)
       this.speed = Util.accelerate(this.speed, this.accel, dt)
     else if (this.keySlower)
-      this.speed = Util.accelerate(this.speed, this.breaking, dt)
+      this.speed = Util.accelerate(this.speed, this.braking, dt)
     else
       this.speed = Util.accelerate(this.speed, this.decel, dt)
   
