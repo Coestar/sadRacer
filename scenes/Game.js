@@ -1,6 +1,11 @@
 import Util from '../modules/Util.js'
 import Render from '../modules/Render.js'
 
+const INFO_FORMAT = 
+`Size:       %1
+Spawned:    %2
+Despawned:  %3`
+
 export default class Game extends Phaser.Scene
 {
   constructor ()
@@ -38,6 +43,8 @@ export default class Game extends Phaser.Scene
     
     this.debugMaxY    = 0
 
+    this.cameraZoom = 1.2
+    
     this.autoDrive    = true
 
     this.keyFaster    = false
@@ -103,12 +110,7 @@ export default class Game extends Phaser.Scene
 
     this.atlasTexture   = null
     this.frameNames     = null
-
-
-    console.log('FOV:', this.fieldOfView)
-    console.log('Camera Height:', this.cameraHeight)
-    console.log('Camera Depth:', this.cameraDepth)
-    console.log('PlayerZ:', this.playerZ)
+    this.poolGroup      = null
   }
 
   init ()
@@ -144,8 +146,6 @@ export default class Game extends Phaser.Scene
 
     this.gfx = this.add.graphics()
 
-    this.resetRoad()
-
     // delay drive start
     if (this.autoDrive)
     {
@@ -160,7 +160,7 @@ export default class Game extends Phaser.Scene
     }
     
     // Zoom in camera to hide my bad programming
-    this.cameras.main.setZoom(1.2)
+    this.cameras.main.setZoom(this.cameraZoom)
 
     
     // this.scene.run('debug-hud')
@@ -179,32 +179,31 @@ export default class Game extends Phaser.Scene
       }
     })
 
-    this.keys.E.on('up', () => {
-      this.resetRoad()
+    this.poolGroup = this.add.group({
+			key: 'atlas',
+      frame: this.frameNames,
+      // frameQuantity: 7,
+      // randomKey: true,
+      // randomFrame: true,
+      active: false,
+      visible: false
+		})
+
+		this.infoText = this.add.text(300, 200, 'hello?')
+      .setDepth(3000)
+      .setOrigin(0, 0)
+
+    this.input.on(Phaser.Input.Events.POINTER_DOWN, pointer => {
+      this.spawnFromAtlas(pointer.x, pointer.y)
     })
+
+    this.resetRoad()
     
   }
 
   update (time, delta)
   {
 
-    if (this.keys.A.isDown)
-    {
-      this.playerZ -= 1
-    }
-    else if (this.keys.D.isDown)
-    {
-      this.playerZ += 1
-    }
-
-    if (this.keys.W.isDown)
-    {
-      this.cameraHeight += 25
-    }
-    else if (this.keys.S.isDown)
-    {
-      this.cameraHeight -= 25
-    }
 
     if (this.autoDrive && this.overrideFaster)
     {
@@ -225,7 +224,57 @@ export default class Game extends Phaser.Scene
     this.Render.all()
     this.playerUpdate(delta / 1000)
 
+    // temp for debug
+		if (!this.poolGroup || !this.infoText)
+		{
+			return
+		}
+
+		const size = this.poolGroup.getLength()
+		const used = this.poolGroup.getTotalUsed()
+		const text = Phaser.Utils.String.Format(
+			INFO_FORMAT,
+			[
+				size,
+				used,
+				size - used
+			]
+		)
+
+		this.infoText.setText(text)
+
   }
+
+  spawnFromAtlas(x = 400, y = 300)
+	{
+		if (!this.poolGroup)
+		{
+			return null
+		}
+
+    let randomFrame = this.frameNames[Util.randomInt(0, this.frameNames.length - 1)]
+		const item = this.poolGroup.get(x, y, 'atlas')
+    item.setFrame('palm_tree')
+    item.setDepth('3000')
+
+		item.alpha = 1
+		item.scale = 1
+		item.setVisible(true)
+		item.setActive(true)
+
+		this.tweens.add({
+			targets: item,
+			scale: 2,
+			alpha: 0,
+			duration: Phaser.Math.Between(500, 1500),
+			onComplete: (tween) => {
+				this.poolGroup.killAndHide(item)
+				this.tweens.killTweensOf(item)
+			}
+		})
+
+		return item
+	}
 
   recalcCamera()
   {
@@ -254,7 +303,6 @@ export default class Game extends Phaser.Scene
   { 
     this.segments = []
 
-    /*
     // this.addStraight(this.road.LENGTH.SHORT/2)
     // this.addHill(this.road.LENGTH.SHORT, this.road.HILL.LOW)
     // this.addStraight(this.road.LENGTH.SHORT/2)
@@ -272,25 +320,37 @@ export default class Game extends Phaser.Scene
     // this.addStraight()
     // this.addHill(this.road.LENGTH.LONG, this.road.HILL.HIGH)
     
-    this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
-    this.addRightDownhillToEnd()
-    this.addHillCurveLeft(this.road.LENGTH.MEDIUM, this.road.HILL.HIGH)
-    this.addSCurves()
-    this.addLeftDownhillToEnd()
-    this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
-    this.addRightDownhillToEnd()
-    this.addStraight()
+    // BIG HILL BAD (Currently anyway)
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addRightDownhillToEnd()
+    // this.addHillCurveLeft(this.road.LENGTH.MEDIUM, this.road.HILL.HIGH)
+    // this.addSCurves()
+    // this.addLeftDownhillToEnd()
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addHillCurveRight(this.road.LENGTH.LONG, this.road.HILL.HIGH)
+    // this.addRightDownhillToEnd()
+    // this.addStraight()
 
     // this.addCurve(this.road.LENGTH.LONG, -this.road.CURVE.HARD, 0)
     // this.addCurve(this.road.LENGTH.LONG, -this.road.CURVE.HARD, -this.road.HILL.HIGH)
     // this.addCurve(this.road.LENGTH.LONG, -this.road.CURVE.HARD, 0)
     // this.addCurve(this.road.LENGTH.LONG, -this.road.CURVE.HARD, 0)
-    */
 
     // Longer Test Road
     // this.addStraight(0)
     // this.addLowRollingHills()
     // this.addStraight(250)
+
     this.addHill(200, this.road.HILL.HIGH)
     this.addSCurves()
     this.addStraight()
@@ -301,6 +361,8 @@ export default class Game extends Phaser.Scene
     this.addCurve(this.road.LENGTH.SHORT, -this.road.CURVE.HARD, 0)
     this.addCurve(this.road.LENGTH.SHORT, this.road.CURVE.HARD, 0)
     this.addStraight()
+
+    // this.addRoad(10, 10, 10, 0)
 
     this.segments[this.findSegment(this.playerZ).index + 2].color = this.colors.START
     this.segments[this.findSegment(this.playerZ).index + 3].color = this.colors.START
@@ -364,8 +426,18 @@ export default class Game extends Phaser.Scene
 
   addSprite (n, sprite, offset)
   {
+		if (!this.poolGroup)
+		{
+			return null
+		}
+
     let randomFrame = this.frameNames[Util.randomInt(0, this.frameNames.length - 1)]
-    this.segments[n].sprites.push({ source: sprite, frame: randomFrame, offset: offset })
+    let item = this.poolGroup.get(0, 0, 'atlas')
+    item.setFrame(randomFrame)
+    item.setOrigin(0, 0)
+		item.setVisible(false)
+		item.setActive(true)
+    this.segments[n].sprites.push({ source: item, offset: offset })
   }
 
   resetSprites()

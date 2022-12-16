@@ -37,11 +37,7 @@ body {
 .debug-hud__item input,
 .debug-hud__item button {
   font-size: 18px;
-  padding: 5px;
-}
-
-.debug-hud__item input {
-  max-width: 70px;
+  width: 100px;
 }
 
 .debug-hud__item button {

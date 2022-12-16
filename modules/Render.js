@@ -66,7 +66,7 @@ export default class Render
       // Render roadside sprites
       let i
       for(i = 0 ; i < segment.sprites.length ; i++) {
-        this.sprite(segment.sprites[i], segment)
+        this.sprite(segment.sprites[i], segment, n)
       }
 
       // Render player car
@@ -148,20 +148,21 @@ export default class Render
     return projectedRoadWidth / Math.max(32, 8 * lanes)
   }
 
+  
   /**
    * Render Sprites
    */
-  sprite (sprite, segment)
+  sprite (sprite, segment, n)
   {
     let roadWidth = this.scene.roadWidth,
         width     = this.scene.width,
+        height    = this.scene.height,
         allScale  = this.scene.sprites.scale,
         scale     = segment.p1.screen.scale,
         destX     = segment.p1.screen.x + (scale * sprite.offset * roadWidth * width / 2),
         destY     = segment.p1.screen.y,
-        atlasImg  = this.scene.atlasTexture.get(sprite.frame),
-        spriteW   = atlasImg.width,
-        spriteH   = atlasImg.height,
+        spriteW   = sprite.source.width,
+        spriteH   = sprite.source.height,
         // TODO: should not be hardcoded, should use sprite w/h
         destW     = (spriteW * scale * width / 2) * (allScale * roadWidth),
         destH     = (spriteH * scale * width / 2) * (allScale * roadWidth),
@@ -174,22 +175,38 @@ export default class Render
 
     let clipH = clipY ? Math.max(0, destY + destH - clipY) : 0
 
-    if (clipH < destH)
+    if (clipH < destH &&
+        destX > 0 - spriteW &&
+        destX < width + spriteW &&
+        destY > 0 - spriteH &&
+        destY < height + spriteH)
     {
-
-      let thisSprite = this.scene.add.image(destX, destY, sprite.source, sprite.frame)
-      // TODO:
-      // This doesn't work because we're readding the sprite each time, not moving it... could be improved.
-      // thisSprite.setAlpha(0)
-      thisSprite.setOrigin(0, 0)
-      thisSprite.displayWidth = destW
-      thisSprite.displayHeight = destH
-      // TODO: The w/h here should not be hardcoded
-      thisSprite.setCrop(0, 0, spriteW, spriteH - (spriteH * clipH / destH))
-      this.scene.allSprites.push(thisSprite)
-
+      // On Screen
+      if (!sprite.source.active)
+      {
+        sprite.source.setActive(true)
+        sprite.source.alpha = 0
+      }
+      if (sprite.source.alpha < 1) {
+        sprite.source.alpha += 0.01
+      }
+      sprite.source.x = destX
+      sprite.source.y = destY
+      sprite.source.displayWidth = destW
+      sprite.source.displayHeight = destH
+      sprite.source.setCrop(0, 0, spriteW, spriteH - (spriteH * clipH / destH))
+      let fixDepth = 1999 - n
+      sprite.source.setDepth(fixDepth)
+      if (fixDepth < 0) { console.log(fixDepth) }
+      sprite.source.setVisible(true)
+    } else {
+      // Off Screen
+      // sprite.source.setVisible(false)
+      // sprite.source.setActive(false)
+      this.scene.poolGroup.killAndHide(sprite.source)
     }
   }
+
 
   /**
    * Render Player

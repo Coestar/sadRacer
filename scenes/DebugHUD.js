@@ -60,6 +60,10 @@ export default class DebugHUD extends Phaser.Scene
             <label>Camera Height:</label>
             <input type="number" name="debugCameraHeight" id="debugCameraHeight" step="100" min="100" value="${this.gameScene.cameraHeight}">
           </div>
+          <div class="debug-hud__item">
+            <label>Main Camera Zoom:</label>
+            <input type="number" name="debugCameraZoom" id="debugCameraZoom" step="0.01" min="0.01" value="${this.gameScene.cameraZoom}">
+          </div>
         </div>
       </div>
     `
@@ -135,8 +139,15 @@ export default class DebugHUD extends Phaser.Scene
     document.getElementById('debugCameraHeight')
       .addEventListener('change', (e) => {
         let inputEl = document.getElementById(e.target.id)
-        this.gameScene.cameraHeight = parseInt(parseInt(inputEl.value))
+        this.gameScene.cameraHeight = parseInt(inputEl.value)
         this.gameScene.recalcCamera()
+      })
+
+    document.getElementById('debugCameraZoom')
+      .addEventListener('change', (e) => {
+        let inputEl = document.getElementById(e.target.id)
+        this.gameScene.cameraZoom = parseFloat(inputEl.value)
+        this.gameScene.cameras.main.setZoom(this.gameScene.cameraZoom)
       })
   }
 }
