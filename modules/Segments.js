@@ -1,8 +1,12 @@
+
+
 export default class Segments
 {
   constructor (scene)
   {
-    this.segments = []
+    this.scene      = scene
+
+    this.segments   = []
   }
 
   /**
@@ -27,7 +31,7 @@ export default class Segments
       p1: {
         world: {
           y: this.lastY(),
-          z: n * this.segmentLength
+          z: n * this.scene.segmentLength
         },
         camera: {},
         screen: {}
@@ -35,14 +39,14 @@ export default class Segments
       p2: {
         world: {
           y: y,
-          z: (n + 1 ) * this.segmentLength
+          z: (n + 1 ) * this.scene.segmentLength
         },
         camera: {},   
         screen: {}
       },
       curve: curve,
       sprites: [],
-      color: Math.floor(n/this.rumbleLength) % 2 ? this.colors.DARK : this.colors.LIGHT
+      color: Math.floor(n/this.scene.rumbleLength) % 2 ? this.scene.colors.DARK : this.scene.colors.LIGHT
     })
   }
 
@@ -52,5 +56,13 @@ export default class Segments
   lastY ()
   {
     return (this.segments.length == 0) ? 0 : this.segments[this.segments.length-1].p2.world.y
+  }
+
+  /**
+   * Finds segment
+   */
+  findSegment(z)
+  {
+    return this.segments[Math.floor(z/this.scene.segmentLength) % this.segments.length];
   }
 }

@@ -5,13 +5,18 @@ export default class DebugHUD extends Phaser.Scene
     super('debug-hud')
 
     this.gameScene  = null
+    this.controlIDs = []
     this.debugDom   = null
+
+    this.Render
   }
 
   create ()
   {
 
     this.gameScene = this.scene.get('game')
+
+    this.Render     = this.gameScene.Render
 
     const debugModal = `
       <div id="debugModal">
@@ -22,7 +27,7 @@ export default class DebugHUD extends Phaser.Scene
           </div>
           <div class="debug-hud__item">
             <label>Draw Distance:</label>
-            <input type="number" name="debugDrawDistance" id="debugDrawDistance" value="${this.gameScene.drawDistance}">
+            <input type="number" name="debugDrawDistance" id="debugDrawDistance" value="${this.Render.drawDistance}">
           </div>
           <div class="debug-hud__item">
             <label>Road Width:</label>
@@ -42,7 +47,7 @@ export default class DebugHUD extends Phaser.Scene
           </div>
           <div class="debug-hud__item">
             <label>Fog Density:</label>
-            <input type="number" name="debugFogDensity" id="debugFogDensity" value="${this.gameScene.fogDensity}">
+            <input type="number" name="debugFogDensity" id="debugFogDensity" value="${this.Render.fogDensity}">
           </div>
           <div class="debug-hud__item">
             <label>Max Speed:</label>
@@ -81,7 +86,7 @@ export default class DebugHUD extends Phaser.Scene
     document.getElementById('debugDrawDistance')
       .addEventListener('change', (e) => {
         let inputEl = document.getElementById(e.target.id)
-        this.gameScene.drawDistance = parseInt(inputEl.value)
+        this.Render.drawDistance = parseInt(inputEl.value)
       })
 
     document.getElementById('debugRoadWidth')
@@ -113,7 +118,7 @@ export default class DebugHUD extends Phaser.Scene
     document.getElementById('debugFogDensity')
       .addEventListener('change', (e) => {
         let inputEl = document.getElementById(e.target.id)
-        this.gameScene.fogDensity = parseInt(inputEl.value)
+        this.Render.fogDensity = parseInt(inputEl.value)
       })
 
     document.getElementById('debugMaxSpeed')
@@ -149,5 +154,29 @@ export default class DebugHUD extends Phaser.Scene
         this.gameScene.cameraZoom = parseFloat(inputEl.value)
         this.gameScene.cameras.main.setZoom(this.gameScene.cameraZoom)
       })
+  }
+
+  createDebugButtonToggle(label, id, value)
+  {
+    this.controlIDs.push(`debug${id}`)
+
+    return `
+      <div class="debug-hud__item">
+        <label>${label}:</label>
+        <button id="debug${id}">${value}</button>
+      </div>
+    `
+  }
+
+  createDebugNumberInput(label, id, value, step, min, max)
+  {
+    this.controlIDs.push(`debug${id}`)
+    
+    return `
+      <div class="debug-hud__item">
+        <label>${label}:</label>
+        <input type="number" name="debug${id}" id="debug${id}" step="${step}" min="${min}" max="${max}" value="${value}">
+      </div>
+    `
   }
 }

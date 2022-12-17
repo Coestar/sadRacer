@@ -5,16 +5,48 @@ export default class Render
   constructor (scene)
   {
     this.scene          = scene
+
+    this.gfx            = scene.add.graphics()
+
+    // Settings
+    this.drawDistance   = 100
+    this.fogDensity     = 1
   }
+
+  init ()
+  {
+
+  }
+
+
+  clear ()
+  {
+    this.gfx.clear()
+
+    // Deactivate sprites outside of drawDistance
+    let baseSegment = this.scene.Segments.findSegment(this.scene.position)
+
+    this.scene.Segments.segments.forEach((segment) => {
+      if (segment.index < baseSegment.index ||
+          segment.index > baseSegment.index + this.drawDistance)
+      {
+        segment.sprites.forEach((sprite) => {
+          sprite.source.setActive(false)
+          sprite.source.setVisible(false)
+        })
+      }
+    })
+  }
+
 
   /**
    * Render all
    */
   all ()
   {
-    let baseSegment           = this.scene.findSegment(this.scene.position),
+    let baseSegment           = this.scene.Segments.findSegment(this.scene.position),
         basePercent           = Util.percentRemaining(this.scene.position, this.scene.segmentLength),
-        playerSegment         = this.scene.findSegment(this.scene.position + this.scene.playerZ),
+        playerSegment         = this.scene.Segments.findSegment(this.scene.position + this.scene.playerZ),
         playerPercent         = Util.percentRemaining(this.scene.position + this.scene.playerZ, this.scene.segmentLength),
         width                 = this.scene.width,
         height                = this.scene.height,
@@ -32,12 +64,12 @@ export default class Render
     this.scene.playerY    = Util.interpolate(playerSegment.p1.world.y, playerSegment.p2.world.y, playerPercent)
     
     // Segment render loop (away from camera)
-    for(n = 0 ; n < this.scene.drawDistance ; n++) {
+    for(n = 0 ; n < this.drawDistance ; n++) {
   
-      segment         = this.scene.segments[(baseSegment.index + n) % this.scene.segments.length];
+      segment         = this.scene.Segments.segments[(baseSegment.index + n) % this.scene.Segments.segments.length];
       segment.looped  = segment.index < baseSegment.index
       
-      segment.fog     = Util.exponentialFog(n/this.scene.drawDistance, this.scene.fogDensity)
+      segment.fog     = Util.exponentialFog(n/this.drawDistance, this.fogDensity)
       segment.clip    = maxy
   
       Util.project(segment.p1, (playerX * roadWidth) - x, this.scene.playerY + cameraHeight, position - (segment.looped ? trackLength : 0), cameraDepth, width, height, roadWidth)
@@ -60,8 +92,8 @@ export default class Render
     }
 
     // Other render items loop (towards camera)
-    for(n = (this.scene.drawDistance-1) ; n > 0 ; n--) {
-      segment = this.scene.segments[(baseSegment.index + n) % this.scene.segments.length]
+    for(n = (this.drawDistance-1) ; n > 0 ; n--) {
+      segment = this.scene.Segments.segments[(baseSegment.index + n) % this.scene.Segments.segments.length]
     
       // Render roadside sprites
       let i
@@ -97,8 +129,8 @@ export default class Render
         l2 = this.laneMarkerWidth(w2, this.scene.lanes),
         lanew1, lanew2, lanex1, lanex2, lane
 
-    this.scene.gfx.fillStyle(color.grass, 1)
-    this.scene.gfx.fillRect(0, y2, sw, y1 - y2)
+    this.gfx.fillStyle(color.grass, 1)
+    this.gfx.fillRect(0, y2, sw, y1 - y2)
     
     this.polygon(x1 - w1 - r1, y1, x1 - w1, y1, x2 - w2, y2, x2 - w2 - r2, y2, color.rumble)
     this.polygon(x1 + w1 + r1, y1, x1 + w1, y1, x2 + w2, y2, x2 + w2 + r2, y2, color.rumble)
@@ -121,20 +153,20 @@ export default class Render
 
   polygon (x1, y1, x2, y2, x3, y3, x4, y4, color)
   {
-    this.scene.gfx.fillStyle(color, 1)
-    this.scene.gfx.beginPath()
-    this.scene.gfx.moveTo(x1, y1)
-    this.scene.gfx.lineTo(x2, y2)
-    this.scene.gfx.lineTo(x3, y3)
-    this.scene.gfx.lineTo(x4, y4)
-    this.scene.gfx.fill()
-    this.scene.gfx.closePath()
+    this.gfx.fillStyle(color, 1)
+    this.gfx.beginPath()
+    this.gfx.moveTo(x1, y1)
+    this.gfx.lineTo(x2, y2)
+    this.gfx.lineTo(x3, y3)
+    this.gfx.lineTo(x4, y4)
+    this.gfx.fill()
+    this.gfx.closePath()
   }
 
   fog (x, y, w, h, fog) {
     if (fog < 1) {
-      this.scene.gfx.fillStyle(this.scene.colors.FOG, 1 - fog)
-      this.scene.gfx.fillRect(x, y, w, h)
+      this.gfx.fillStyle(this.scene.colors.FOG, 1 - fog)
+      this.gfx.fillRect(x, y, w, h)
     }
   }
 
@@ -157,15 +189,14 @@ export default class Render
     let roadWidth = this.scene.roadWidth,
         width     = this.scene.width,
         height    = this.scene.height,
-        allScale  = this.scene.sprites.scale,
+        allScale  = this.scene.spritesScale,
         scale     = segment.p1.screen.scale,
         destX     = segment.p1.screen.x + (scale * sprite.offset * roadWidth * width / 2),
         destY     = segment.p1.screen.y,
         spriteW   = sprite.source.width,
         spriteH   = sprite.source.height,
-        // TODO: should not be hardcoded, should use sprite w/h
-        destW     = (spriteW * scale * width / 2) * (allScale * roadWidth),
-        destH     = (spriteH * scale * width / 2) * (allScale * roadWidth),
+        destW     = (spriteW * scale * width / 2) * (allScale * roadWidth) * sprite.scaleIn,
+        destH     = (spriteH * scale * width / 2) * (allScale * roadWidth) * sprite.scaleIn,
         offsetX   = sprite.offset < 0 ? -1 : 0,
         offsetY   = -1,
         clipY     = segment.clip
@@ -175,21 +206,22 @@ export default class Render
 
     let clipH = clipY ? Math.max(0, destY + destH - clipY) : 0
 
-    if (clipH < destH &&
-        destX > 0 - spriteW &&
-        destX < width + spriteW &&
-        destY > 0 - spriteH &&
-        destY < height + spriteH)
-    {
+    // if (clipH < destH)
+    // {
       // On Screen
       if (!sprite.source.active)
       {
-        sprite.source.setActive(true)
         sprite.source.alpha = 0
+        sprite.scaleIn = 0
       }
       if (sprite.source.alpha < 1) {
-        sprite.source.alpha += 0.01
+        sprite.source.alpha += 0.05
       }
+      if (sprite.scaleIn < 1) {
+        sprite.scaleIn += 0.05
+      }
+
+
       sprite.source.x = destX
       sprite.source.y = destY
       sprite.source.displayWidth = destW
@@ -199,12 +231,14 @@ export default class Render
       sprite.source.setDepth(fixDepth)
       if (fixDepth < 0) { console.log(fixDepth) }
       sprite.source.setVisible(true)
-    } else {
-      // Off Screen
-      // sprite.source.setVisible(false)
-      // sprite.source.setActive(false)
-      this.scene.poolGroup.killAndHide(sprite.source)
-    }
+      sprite.source.setActive(true)
+      
+    // }
+    // else
+    // {
+    //   sprite.source.setVisible(false)
+    //   sprite.source.setActive(false)
+    // }
   }
 
 
