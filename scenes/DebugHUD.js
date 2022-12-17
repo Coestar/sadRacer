@@ -9,6 +9,7 @@ export default class DebugHUD extends Phaser.Scene
     this.debugDom   = null
 
     this.Render
+    this.Road
   }
 
   create ()
@@ -195,7 +196,7 @@ export default class DebugHUD extends Phaser.Scene
         this.gameScene.cameras.main.setZoom(this.gameScene.cameraZoom)
       })
 
-    document.getElementById('debugRenderFog')
+    document.getElementById('debugResetRoad')
       .addEventListener('click', (e) => {
         this.Road.reset()
       })
