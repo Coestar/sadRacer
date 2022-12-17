@@ -11,6 +11,15 @@ export default class Render
     // Settings
     this.drawDistance   = 100
     this.fogDensity     = 1
+
+    // Debug
+    this.renderFog      = true
+    this.renderRumble   = true
+    this.renderLanes    = true
+    this.renderRoad     = true
+    this.renderGround   = true
+    this.renderPlayer   = true
+    this.renderSprites  = true
   }
 
   init ()
@@ -67,45 +76,55 @@ export default class Render
     for(n = 0 ; n < this.drawDistance ; n++) {
   
       segment         = this.scene.Segments.segments[(baseSegment.index + n) % this.scene.Segments.segments.length];
-      segment.looped  = segment.index < baseSegment.index
-      
-      segment.fog     = Util.exponentialFog(n/this.drawDistance, this.fogDensity)
-      segment.clip    = maxy
+      segment.looped  = segment.index < baseSegment.index;
+      segment.fog     = Util.exponentialFog(n/this.drawDistance, this.fogDensity);
+      segment.clip    = maxy;
   
-      Util.project(segment.p1, (playerX * roadWidth) - x, this.scene.playerY + cameraHeight, position - (segment.looped ? trackLength : 0), cameraDepth, width, height, roadWidth)
-      Util.project(segment.p2, (playerX * roadWidth) - x - dx, this.scene.playerY + cameraHeight, position - (segment.looped ? trackLength : 0), cameraDepth, width, height, roadWidth)
+      Util.project(segment.p1, (playerX * roadWidth) - x, this.scene.playerY + cameraHeight, position - (segment.looped ? trackLength : 0), cameraDepth, width, height, roadWidth);
+      Util.project(segment.p2, (playerX * roadWidth) - x - dx, this.scene.playerY + cameraHeight, position - (segment.looped ? trackLength : 0), cameraDepth, width, height, roadWidth);
 
-      x = x + dx
-      dx = dx + segment.curve
+      x = x + dx;
+      dx = dx + segment.curve;
 
       if ((segment.p1.camera.z <= cameraDepth)          ||  // behind us
           (segment.p2.screen.y >= segment.p1.screen.y)  ||  // back face cull
           (segment.p2.screen.y >= maxy))                    // clip by (already rendered) hill
       {
-        continue
+        continue;
       }
 
-      this.segment(segment)
+
+      // Render Segment
+      // Includes ground, road, rumble, lanes, and fog
+      this.segment(segment);
   
-      maxy                  = segment.p1.screen.y
-      this.scene.debugMaxY  = maxy
+
+      maxy                  = segment.p1.screen.y;
+      this.scene.debugMaxY  = maxy;
     }
 
+
     // Other render items loop (towards camera)
+    // Sprites, player car
     for(n = (this.drawDistance-1) ; n > 0 ; n--) {
-      segment = this.scene.Segments.segments[(baseSegment.index + n) % this.scene.Segments.segments.length]
+      segment = this.scene.Segments.segments[(baseSegment.index + n) % this.scene.Segments.segments.length];
     
+
       // Render roadside sprites
-      let i
-      for(i = 0 ; i < segment.sprites.length ; i++) {
-        this.sprite(segment.sprites[i], segment, n)
+      if (this.renderSprites)
+      {
+        for(let i = 0 ; i < segment.sprites.length ; i++) {
+          this.sprite(segment.sprites[i], segment, n);
+        }
       }
 
+
       // Render player car
-      if (segment.index == playerSegment.index) {
-        this.player(playerSegment)
+      if (segment.index == playerSegment.index && this.renderPlayer) {
+        this.player(playerSegment);
       }
     
+
     }
   }
 
@@ -127,16 +146,36 @@ export default class Render
         r2 = this.rumbleWidth(w2, this.scene.lanes),
         l1 = this.laneMarkerWidth(w1, this.scene.lanes),
         l2 = this.laneMarkerWidth(w2, this.scene.lanes),
-        lanew1, lanew2, lanex1, lanex2, lane
+        lanew1, lanew2, lanex1, lanex2, lane;
 
-    this.gfx.fillStyle(color.grass, 1)
-    this.gfx.fillRect(0, y2, sw, y1 - y2)
+
+    // Render Ground
+    if (this.renderGround)
+    {
+      this.gfx.fillStyle(color.grass, 1);
+      this.gfx.fillRect(0, y2, sw, y1 - y2);
+    }
     
-    this.polygon(x1 - w1 - r1, y1, x1 - w1, y1, x2 - w2, y2, x2 - w2 - r2, y2, color.rumble)
-    this.polygon(x1 + w1 + r1, y1, x1 + w1, y1, x2 + w2, y2, x2 + w2 + r2, y2, color.rumble)
-    this.polygon(x1 - w1,      y1, x1 + w1, y1, x2 + w2, y2, x2 - w2,      y2, color.road)
+
+    // Render Rumble
+    if (this.renderRumble)
+    {
+      // Left Rumble
+      this.polygon(x1 - w1 - r1, y1, x1 - w1, y1, x2 - w2, y2, x2 - w2 - r2, y2, color.rumble);
+
+      // Right Rumble
+      this.polygon(x1 + w1 + r1, y1, x1 + w1, y1, x2 + w2, y2, x2 + w2 + r2, y2, color.rumble);
+    }
+
+
+    // Render Road
+    if (this.renderRoad)
+    {
+      this.polygon(x1 - w1,      y1, x1 + w1, y1, x2 + w2, y2, x2 - w2,      y2, color.road);
+    }
     
-    if (color.lane)
+    // Render Lanes
+    if (color.lane && this.renderLanes)
     {
       lanew1 = w1 * 2 / this.scene.lanes
       lanew2 = w2 * 2 / this.scene.lanes
@@ -144,11 +183,16 @@ export default class Render
       lanex2 = x2 - w2 + lanew2
       for(lane = 1 ; lane < this.scene.lanes ; lanex1 += lanew1, lanex2 += lanew2, lane++)
       {
-        this.polygon(lanex1 - l1 / 2, y1, lanex1 + l1 / 2, y1, lanex2 + l2 / 2, y2, lanex2 - l2 / 2, y2, color.lane)
+        this.polygon(lanex1 - l1 / 2, y1, lanex1 + l1 / 2, y1, lanex2 + l2 / 2, y2, lanex2 - l2 / 2, y2, color.lane);
       }
     }
 
-    this.fog(0, y1, sw, y2 - y1, fog)
+
+    // Render Fog
+    if (this.renderFog)
+    {
+      this.fog(0, y1, sw, y2 - y1, fog);
+    }
   }
 
   polygon (x1, y1, x2, y2, x3, y3, x4, y4, color)

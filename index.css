@@ -13,6 +13,14 @@ body {
 
 .debug-hud__wrapper {
   display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.debug-hud__item-group {
+  display: flex;
   flex-flow: column nowrap;
   justify-content: center;
   align-items: flex-start;

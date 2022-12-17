@@ -17,58 +17,98 @@ export default class DebugHUD extends Phaser.Scene
     this.gameScene = this.scene.get('game')
 
     this.Render     = this.gameScene.Render
+    this.Road       = this.gameScene.Road
 
     const debugModal = `
       <div id="debugModal">
         <div class="debug-hud__wrapper">
-          <div class="debug-hud__item">
-            <label>Autodrive:</label>
-            <button id="debugAutodrive">${this.gameScene.autoDrive}</button>
+
+          <div class="debug-hud__item-group">
+            <div class="debug-hud__item">
+              <label>Autodrive:</label>
+              <button id="debugAutodrive">${this.gameScene.autoDrive}</button>
+            </div>
+            <div class="debug-hud__item">
+              <label>Draw Distance:</label>
+              <input type="number" name="debugDrawDistance" id="debugDrawDistance" value="${this.Render.drawDistance}">
+            </div>
+            <div class="debug-hud__item">
+              <label>Road Width:</label>
+              <input type="number" name="debugRoadWidth" id="debugRoadWidth" value="${this.gameScene.roadWidth}">
+            </div>
+            <div class="debug-hud__item">
+              <label>Segment Length:</label>
+              <input type="number" name="debugSegmentLength" id="debugSegmentLength" value="${this.gameScene.segmentLength}">
+            </div>
+            <div class="debug-hud__item">
+              <label>Rumble Length:</label>
+              <input type="number" name="debugRumbleLength" id="debugRumbleLength" value="${this.gameScene.rumbleLength}">
+            </div>
+            <div class="debug-hud__item">
+              <label>Lanes:</label>
+              <input type="number" name="debugLanes" id="debugLanes" value="${this.gameScene.lanes}">
+            </div>
+            <div class="debug-hud__item">
+              <label>Fog Density:</label>
+              <input type="number" name="debugFogDensity" id="debugFogDensity" value="${this.Render.fogDensity}">
+            </div>
+            <div class="debug-hud__item">
+              <label>Max Speed:</label>
+              <input type="number" name="debugMaxSpeed" id="debugMaxSpeed" value="${this.gameScene.maxSpeed}">
+            </div>
+            <div class="debug-hud__item">
+              <label>Horizontal Inertia:</label>
+              <input type="number" step="0.01" max="1" name="debugInertia" id="debugInertia" value="${this.gameScene.inertia}">
+            </div>
+            <div class="debug-hud__item">
+              <label>Camera FOV:</label>
+              <input type="number" name="debugFieldOfView" id="debugFieldOfView" step="10" min="10" value="${this.gameScene.fieldOfView}">
+            </div>
+            <div class="debug-hud__item">
+              <label>Camera Height:</label>
+              <input type="number" name="debugCameraHeight" id="debugCameraHeight" step="100" min="100" value="${this.gameScene.cameraHeight}">
+            </div>
+            <div class="debug-hud__item">
+              <label>Main Camera Zoom:</label>
+              <input type="number" name="debugCameraZoom" id="debugCameraZoom" step="0.01" min="0.01" value="${this.gameScene.cameraZoom}">
+            </div>
           </div>
-          <div class="debug-hud__item">
-            <label>Draw Distance:</label>
-            <input type="number" name="debugDrawDistance" id="debugDrawDistance" value="${this.Render.drawDistance}">
+
+          <div class="debug-hud__item-group">
+            <div class="debug-hud__item">
+              <label>Reset Road:</label>
+              <button id="debugResetRoad">RESET</button>
+            </div>
+            <div class="debug-hud__item">
+              <label>Render Fog:</label>
+              <button id="debugRenderFog">${this.Render.renderFog}</button>
+            </div>
+            <div class="debug-hud__item">
+              <label>Render Rumble:</label>
+              <button id="debugRenderRumble">${this.Render.renderRumble}</button>
+            </div>
+            <div class="debug-hud__item">
+              <label>Render Lanes:</label>
+              <button id="debugRenderLanes">${this.Render.renderLanes}</button>
+            </div>
+            <div class="debug-hud__item">
+              <label>Render Road:</label>
+              <button id="debugRenderRoad">${this.Render.renderRoad}</button>
+            </div>
+            <div class="debug-hud__item">
+              <label>Render Ground:</label>
+              <button id="debugRenderGround">${this.Render.renderGround}</button>
+            </div>
+            <div class="debug-hud__item">
+              <label>Render Player:</label>
+              <button id="debugRenderPlayer">${this.Render.renderPlayer}</button>
+            </div>
+            <div class="debug-hud__item">
+              <label>Render Sprites:</label>
+              <button id="debugRenderSprites">${this.Render.renderSprites}</button>
+            </div>
           </div>
-          <div class="debug-hud__item">
-            <label>Road Width:</label>
-            <input type="number" name="debugRoadWidth" id="debugRoadWidth" value="${this.gameScene.roadWidth}">
-          </div>
-          <div class="debug-hud__item">
-            <label>Segment Length:</label>
-            <input type="number" name="debugSegmentLength" id="debugSegmentLength" value="${this.gameScene.segmentLength}">
-          </div>
-          <div class="debug-hud__item">
-            <label>Rumble Length:</label>
-            <input type="number" name="debugRumbleLength" id="debugRumbleLength" value="${this.gameScene.rumbleLength}">
-          </div>
-          <div class="debug-hud__item">
-            <label>Lanes:</label>
-            <input type="number" name="debugLanes" id="debugLanes" value="${this.gameScene.lanes}">
-          </div>
-          <div class="debug-hud__item">
-            <label>Fog Density:</label>
-            <input type="number" name="debugFogDensity" id="debugFogDensity" value="${this.Render.fogDensity}">
-          </div>
-          <div class="debug-hud__item">
-            <label>Max Speed:</label>
-            <input type="number" name="debugMaxSpeed" id="debugMaxSpeed" value="${this.gameScene.maxSpeed}">
-          </div>
-          <div class="debug-hud__item">
-            <label>Horizontal Inertia:</label>
-            <input type="number" step="0.01" max="1" name="debugInertia" id="debugInertia" value="${this.gameScene.inertia}">
-          </div>
-          <div class="debug-hud__item">
-            <label>Camera FOV:</label>
-            <input type="number" name="debugFieldOfView" id="debugFieldOfView" step="10" min="10" value="${this.gameScene.fieldOfView}">
-          </div>
-          <div class="debug-hud__item">
-            <label>Camera Height:</label>
-            <input type="number" name="debugCameraHeight" id="debugCameraHeight" step="100" min="100" value="${this.gameScene.cameraHeight}">
-          </div>
-          <div class="debug-hud__item">
-            <label>Main Camera Zoom:</label>
-            <input type="number" name="debugCameraZoom" id="debugCameraZoom" step="0.01" min="0.01" value="${this.gameScene.cameraZoom}">
-          </div>
+
         </div>
       </div>
     `
@@ -99,14 +139,14 @@ export default class DebugHUD extends Phaser.Scene
       .addEventListener('change', (e) => {
         let inputEl = document.getElementById(e.target.id)
         this.gameScene.segmentLength = parseInt(inputEl.value)
-        this.gameScene.resetRoad()
+        this.Road.reset()
       })
 
     document.getElementById('debugRumbleLength')
       .addEventListener('change', (e) => {
         let inputEl = document.getElementById(e.target.id)
         this.gameScene.rumbleLength = parseInt(inputEl.value)
-        this.gameScene.resetRoad()
+        this.Road.reset()
       })
 
     document.getElementById('debugLanes')
@@ -153,6 +193,53 @@ export default class DebugHUD extends Phaser.Scene
         let inputEl = document.getElementById(e.target.id)
         this.gameScene.cameraZoom = parseFloat(inputEl.value)
         this.gameScene.cameras.main.setZoom(this.gameScene.cameraZoom)
+      })
+
+    document.getElementById('debugRenderFog')
+      .addEventListener('click', (e) => {
+        this.Road.reset()
+      })
+
+    document.getElementById('debugRenderFog')
+      .addEventListener('click', (e) => {
+        this.Render.renderFog = !this.Render.renderFog
+        document.getElementById(e.target.id).textContent = `${this.Render.renderFog}`
+      })
+
+    document.getElementById('debugRenderRumble')
+      .addEventListener('click', (e) => {
+        this.Render.renderRumble = !this.Render.renderRumble
+        document.getElementById(e.target.id).textContent = `${this.Render.renderRumble}`
+      })
+
+    document.getElementById('debugRenderLanes')
+      .addEventListener('click', (e) => {
+        this.Render.renderLanes = !this.Render.renderLanes
+        document.getElementById(e.target.id).textContent = `${this.Render.renderLanes}`
+      })
+
+    document.getElementById('debugRenderRoad')
+      .addEventListener('click', (e) => {
+        this.Render.renderRoad = !this.Render.renderRoad
+        document.getElementById(e.target.id).textContent = `${this.Render.renderRoad}`
+      })
+
+    document.getElementById('debugRenderGround')
+      .addEventListener('click', (e) => {
+        this.Render.renderGround = !this.Render.renderGround
+        document.getElementById(e.target.id).textContent = `${this.Render.renderGround}`
+      })
+
+    document.getElementById('debugRenderPlayer')
+      .addEventListener('click', (e) => {
+        this.Render.renderPlayer = !this.Render.renderPlayer
+        document.getElementById(e.target.id).textContent = `${this.Render.renderPlayer}`
+      })
+
+    document.getElementById('debugRenderSprites')
+      .addEventListener('click', (e) => {
+        this.Render.renderSprites = !this.Render.renderSprites
+        document.getElementById(e.target.id).textContent = `${this.Render.renderSprites}`
       })
   }
 
