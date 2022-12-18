@@ -18,7 +18,7 @@ export default class Road
 
   }
 
-  reset ()
+  reset (drawDistance)
   {
 
     this.scene.Segments.reset()
@@ -49,7 +49,7 @@ export default class Road
     this.scene.trackLength = this.scene.Segments.segments.length * this.scene.segmentLength
 
     console.log(this.scene.Segments.segments)
-
+    this.drawDistance = drawDistance
     this.resetSprites()
   }
 
@@ -110,13 +110,17 @@ export default class Road
 
     let randomFrame = manualFrames[Util.randomInt(0, manualFrames.length - 1)]
     // let randomFrame = this.frameNames[Util.randomInt(0, this.frameNames.length - 1)]
-    let item = this.scene.poolGroup.get(0, 0, sprite)
-    item.setFrame(randomFrame)
-    // item.setFrame('column')
+    let item = this.scene.poolGroup.create(0, 0, sprite, randomFrame, false, n < self.drawDistance)
     item.setOrigin(0, 0)
-		item.setVisible(false)
-		item.setActive(true)
     this.scene.Segments.segments[n].sprites.push({ source: item, offset: offset, scaleIn: 0.01 })
+  }
+
+  // would be ideal to move all segment operations to similar methods
+  setSprites(n, status) {
+    this.scene.Segments.segments[n].sprites.forEach((x) => {
+      x.source.setActive(status)
+      x.source.setVisible(status)
+    });
   }
 
   resetSprites ()

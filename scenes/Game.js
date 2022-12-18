@@ -172,13 +172,12 @@ export default class Game extends Phaser.Scene
       .setOrigin(0, 0)
 
       
-    this.Road.reset()
+    this.Road.reset(this.Render.drawDistance)
     
   }
 
   update (time, delta)
   {
-
 
     if (this.autoDrive && this.overrideFaster)
     {
@@ -194,8 +193,7 @@ export default class Game extends Phaser.Scene
     }
 
     // game loop
-    this.Render.clear()
-    this.Render.all()
+    this.Render.all(this.Road)
     this.playerUpdate(delta / 1000)
 
     // temp for debug

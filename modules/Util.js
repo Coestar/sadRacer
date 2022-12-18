@@ -14,14 +14,7 @@ const Util = {
   easeInOut:        function(a,b,percent)       { return a + (b-a)*((-Math.cos(percent*Math.PI)/2) + 0.5);        },
   exponentialFog:   function(distance, density) { return 1 / (Math.pow(Math.E, (distance * distance * density))); },
 
-  increase:  function(start, increment, max) { // with looping
-    var result = start + increment;
-    while (result >= max)
-      result -= max;
-    while (result < 0)
-      result += max;
-    return result;
-  },
+  increase:  function(start, increment, max) { return (start + increment + max) % max; },
 
   project: function(p, cameraX, cameraY, cameraZ, cameraDepth, width, height, roadWidth) {
     p.camera.x     = (p.world.x || 0) - cameraX
