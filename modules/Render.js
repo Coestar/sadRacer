@@ -27,31 +27,10 @@ export default class Render
 
   }
 
-
-  clear ()
-  {
-    this.gfx.clear()
-
-    // Deactivate sprites outside of drawDistance
-    let baseSegment = this.scene.Segments.findSegment(this.scene.position)
-
-    this.scene.Segments.segments.forEach((segment) => {
-      if (segment.index < baseSegment.index ||
-          segment.index > baseSegment.index + this.drawDistance)
-      {
-        segment.sprites.forEach((sprite) => {
-          sprite.source.setActive(false)
-          sprite.source.setVisible(false)
-        })
-      }
-    })
-  }
-
-
   /**
    * Render all
    */
-  all ()
+  all (road)
   {
     let baseSegment           = this.scene.Segments.findSegment(this.scene.position),
         basePercent           = Util.percentRemaining(this.scene.position, this.scene.segmentLength),
@@ -71,6 +50,12 @@ export default class Render
         n, segment
         
     this.scene.playerY    = Util.interpolate(playerSegment.p1.world.y, playerSegment.p2.world.y, playerPercent)
+    this.gfx.clear()
+
+    // clear passed segments, could also calculate how many from last delta
+    let passed = 20, total = this.scene.Segments.segments.length;
+    for (n = 0; n < passed; n++)
+      road.setSprites((baseSegment.index - n - 1 + total) % total, false); // normalize index
     
     // Segment render loop (away from camera)
     for(n = 0 ; n < this.drawDistance ; n++) {
