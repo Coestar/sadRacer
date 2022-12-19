@@ -134,6 +134,10 @@ export default class DebugHUD extends Phaser.Scene
               <div id="debugPlayerZ">${this.gameScene.playerZ}</div>
             </div>
             <div class="debug-hud__item">
+              <label>Speed:</label>
+              <div id="debugSpeed">${this.gameScene.speed}</div>
+            </div>
+            <div class="debug-hud__item">
               <label>Track Length:</label>
               <div id="debugTrackLength">${this.Segments.segments.length * this.gameScene.segmentLength}</div>
             </div>
@@ -308,6 +312,7 @@ export default class DebugHUD extends Phaser.Scene
     document.getElementById('debugPlayerX').textContent = `${this.gameScene.playerX}`;
     document.getElementById('debugPlayerY').textContent = `${this.gameScene.playerY}`;
     document.getElementById('debugPlayerZ').textContent = `${this.gameScene.playerZ}`;
+    document.getElementById('debugSpeed').textContent = `${this.gameScene.speed}`;
     document.getElementById('debugTrackLength').textContent = `${this.Segments.segments.length * this.gameScene.segmentLength}`;
     document.getElementById('debugPosition').textContent = `${this.gameScene.position} (${Math.round(this.gameScene.position / (this.Segments.segments.length * this.gameScene.segmentLength) * 100)}%)`;
     document.getElementById('debugPoolSize').textContent = `${this.gameScene.poolGroup.getLength()}`;
