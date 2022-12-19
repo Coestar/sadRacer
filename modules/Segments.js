@@ -61,8 +61,17 @@ export default class Segments
   /**
    * Finds segment
    */
-  findSegment(z)
+  findSegment (z)
   {
     return this.segments[Math.floor(z/this.scene.segmentLength) % this.segments.length];
+  }
+
+  findSegmentPosition (z)
+  {
+    return Math.floor(z/this.scene.segmentLength) % this.segments.length;
+  }
+
+  getSegmentAt (z){
+    return this.segments.at(z)
   }
 }

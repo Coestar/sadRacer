@@ -1,12 +1,8 @@
 import Util from '../modules/Util.js'
 import Render from '../modules/Render.js'
+import RenderNew from '../modules/RenderNew.js'
 import Road from '../modules/Road.js'
 import Segments from '../modules/Segments.js'
-
-const INFO_FORMAT = 
-`Size:       %1
-Spawned:    %2
-Despawned:  %3`
 
 export default class Game extends Phaser.Scene
 {
@@ -18,19 +14,24 @@ export default class Game extends Phaser.Scene
     this.width         = 1920
     this.height        = 1080
     this.resolution    = null // scaling factor to provide resolution independence (computed)
+
     this.roadWidth     = 2000 // actually half the roads width, easier math if the road spans from -roadWidth to +roadWidth
     this.segmentLength = 200  // length of a single segment
     this.rumbleLength  = 3    // number of segments per red/white rumble strip
     this.trackLength   = null // z length of entire track (computed)
     this.lanes         = 3    // number of lanes
+
+    this.uknFactor1    = 1
+    this.uknFactor2    = 200
     this.fieldOfView   = 100  // angle (degrees) for field of view
     this.cameraHeight  = 800 // z height of camera
-    this.cameraDepth   = 1 / Math.tan((this.fieldOfView/2) * Math.PI/180) // z distance camera is from screen (computed)
+    this.cameraDepth   = this.uknFactor1 / Math.tan((this.fieldOfView/2) * Math.PI/180) // z distance camera is from screen (computed)
     this.playerX       = 0    // player x offset from center of road (-1 to 1 to stay independent of roadWidth)
     this.playerY       = 0
-    this.playerZ       = this.cameraHeight * this.cameraDepth + 200 // player relative z distance from camera (computed)
+    this.playerZ       = this.cameraHeight * this.cameraDepth + this.uknFactor2 // player relative z distance from camera (computed)
     this.fogDensity    = 1    // exponential fog density
     this.position      = 0    // current camera Z position (add playerZ to get player's absolute Z position)
+
     this.speed         = 0    // current speed
     this.maxSpeed      = 12000
     this.accel         =  this.maxSpeed/5  // acceleration rate - tuned until it 'felt' right
@@ -89,6 +90,8 @@ export default class Game extends Phaser.Scene
     this.atlasTexture   = null
     this.frameNames     = null
     this.poolGroup      = null
+
+    this.quadTest       = null
   }
 
   init ()
@@ -167,19 +170,12 @@ export default class Game extends Phaser.Scene
       visible: false
 		})
 
-		this.infoText = this.add.text(300, 200, 'hello?')
-      .setDepth(3000)
-      .setOrigin(0, 0)
-
-      
     this.Road.reset()
     
   }
 
   update (time, delta)
   {
-
-
     if (this.autoDrive && this.overrideFaster)
     {
       this.keyFaster  = true
@@ -197,26 +193,6 @@ export default class Game extends Phaser.Scene
     this.Render.clear()
     this.Render.all()
     this.playerUpdate(delta / 1000)
-
-    // temp for debug
-		if (!this.poolGroup || !this.infoText)
-		{
-			return
-		}
-
-		const size = this.poolGroup.getLength()
-		const used = this.poolGroup.getTotalUsed()
-		const text = Phaser.Utils.String.Format(
-			INFO_FORMAT,
-			[
-				size,
-				used,
-				size - used
-			]
-		)
-
-		this.infoText.setText(text)
-
   }
 
   playerUpdate (dt)
@@ -296,8 +272,8 @@ export default class Game extends Phaser.Scene
 
   recalcCamera()
   {
-    this.cameraDepth = 1 / Math.tan((this.fieldOfView/2) * Math.PI/180)
-    this.playerZ = this.cameraHeight * this.cameraDepth + 200
+    this.cameraDepth  = this.uknFactor1 / Math.tan((this.fieldOfView/2) * Math.PI/180)
+    this.playerZ      = this.cameraHeight * this.cameraDepth + this.uknFactor2
   }
 
   recalcSpeeds()

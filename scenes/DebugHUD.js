@@ -10,6 +10,7 @@ export default class DebugHUD extends Phaser.Scene
 
     this.Render
     this.Road
+    this.Segments
   }
 
   create ()
@@ -19,6 +20,7 @@ export default class DebugHUD extends Phaser.Scene
 
     this.Render     = this.gameScene.Render
     this.Road       = this.gameScene.Road
+    this.Segments   = this.gameScene.Segments
 
     const debugModal = `
       <div id="debugModal">
@@ -60,6 +62,14 @@ export default class DebugHUD extends Phaser.Scene
             <div class="debug-hud__item">
               <label>Horizontal Inertia:</label>
               <input type="number" step="0.01" max="1" name="debugInertia" id="debugInertia" value="${this.gameScene.inertia}">
+            </div>
+            <div class="debug-hud__item">
+              <label>Unknown Factor 1:</label>
+              <input type="number" name="debugUknFactor1" id="debugUknFactor1" step="0.01" value="${this.gameScene.uknFactor1}">
+            </div>
+            <div class="debug-hud__item">
+              <label>Unknown Factor 2:</label>
+              <input type="number" name="debugUknFactor2" id="debugUknFactor2" step="10" value="${this.gameScene.uknFactor2}">
             </div>
             <div class="debug-hud__item">
               <label>Camera FOV:</label>
@@ -107,6 +117,41 @@ export default class DebugHUD extends Phaser.Scene
             <div class="debug-hud__item">
               <label>Render Sprites:</label>
               <button id="debugRenderSprites">${this.Render.renderSprites}</button>
+            </div>
+          </div>
+
+          <div class="debug-hud__item-group">
+            <div class="debug-hud__item">
+              <label>Player X:</label>
+              <div id="debugPlayerX">${this.gameScene.playerX}</div>
+            </div>
+            <div class="debug-hud__item">
+              <label>Player Y:</label>
+              <div id="debugPlayerY">${this.gameScene.playerY}</div>
+            </div>
+            <div class="debug-hud__item">
+              <label>Player Z:</label>
+              <div id="debugPlayerZ">${this.gameScene.playerZ}</div>
+            </div>
+            <div class="debug-hud__item">
+              <label>Track Length:</label>
+              <div id="debugTrackLength">${this.Segments.segments.length * this.gameScene.segmentLength}</div>
+            </div>
+            <div class="debug-hud__item">
+              <label>Position:</label>
+              <div id="debugPosition">${this.gameScene.position} (${Math.round(this.gameScene.position / (this.Segments.segments.length * this.gameScene.segmentLength) * 100)}%)</div>
+            </div>
+            <div class="debug-hud__item">
+              <label>poolGroup Size:</label>
+              <div id="debugPoolSize">${this.gameScene.poolGroup.getLength()}</div>
+            </div>
+            <div class="debug-hud__item">
+              <label>poolGroup Used:</label>
+              <div id="debugPoolUsed">${this.gameScene.poolGroup.getTotalUsed()}</div>
+            </div>
+            <div class="debug-hud__item">
+              <label>poolGroup Diff:</label>
+              <div id="debugPoolDiff">${this.gameScene.poolGroup.getLength() - this.gameScene.poolGroup.getTotalUsed()}</div>
             </div>
           </div>
 
@@ -173,6 +218,20 @@ export default class DebugHUD extends Phaser.Scene
       .addEventListener('change', (e) => {
         let inputEl = document.getElementById(e.target.id)
         this.gameScene.inertia = parseFloat(inputEl.value)
+      })
+
+    document.getElementById('debugUknFactor1')
+      .addEventListener('change', (e) => {
+        let inputEl = document.getElementById(e.target.id)
+        this.gameScene.uknFactor1 = parseInt(inputEl.value)
+        this.gameScene.recalcCamera()
+      })
+
+    document.getElementById('debugUknFactor2')
+      .addEventListener('change', (e) => {
+        let inputEl = document.getElementById(e.target.id)
+        this.gameScene.uknFactor2 = parseInt(inputEl.value)
+        this.gameScene.recalcCamera()
       })
 
     document.getElementById('debugFieldOfView')
@@ -242,6 +301,18 @@ export default class DebugHUD extends Phaser.Scene
         this.Render.renderSprites = !this.Render.renderSprites
         document.getElementById(e.target.id).textContent = `${this.Render.renderSprites}`
       })
+  }
+
+  update ()
+  {
+    document.getElementById('debugPlayerX').textContent = `${this.gameScene.playerX}`;
+    document.getElementById('debugPlayerY').textContent = `${this.gameScene.playerY}`;
+    document.getElementById('debugPlayerZ').textContent = `${this.gameScene.playerZ}`;
+    document.getElementById('debugTrackLength').textContent = `${this.Segments.segments.length * this.gameScene.segmentLength}`;
+    document.getElementById('debugPosition').textContent = `${this.gameScene.position} (${Math.round(this.gameScene.position / (this.Segments.segments.length * this.gameScene.segmentLength) * 100)}%)`;
+    document.getElementById('debugPoolSize').textContent = `${this.gameScene.poolGroup.getLength()}`;
+    document.getElementById('debugPoolUsed').textContent = `${this.gameScene.poolGroup.getTotalUsed()}`;
+    document.getElementById('debugPoolDiff').textContent = `${this.gameScene.poolGroup.getLength() - this.gameScene.poolGroup.getTotalUsed()}`;
   }
 
   createDebugButtonToggle(label, id, value)

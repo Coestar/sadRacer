@@ -1,6 +1,6 @@
 import Util from './Util.js'
 
-export default class Render
+export default class RenderNew
 {
   constructor (scene)
   {
@@ -33,41 +33,15 @@ export default class Render
     this.gfx.clear()
 
     // Deactivate sprites outside of drawDistance
-    let initial = this.scene.Segments.findSegmentPosition(this.scene.position)
-
-    for(let i = initial; i != initial - this.drawDistance; i--){
-      let segment = this.scene.Segments.getSegmentAt(i)
-      segment.sprites.forEach((sprite) => {
-        sprite.source.setActive(false)
-        sprite.source.setVisible(false)
-      })
-    }
-
-    // let trackLength = this.scene.Segments.segments.length - 1
     // let initial = this.scene.Segments.findSegmentPosition(this.scene.position)
-    // let finalClear = (trackLength - (initial + this.drawDistance))*-1
 
-    // for(let i = initial; i != finalClear; i--){
+    // for(let i = initial; i != initial - this.drawDistance; i--){
     //   let segment = this.scene.Segments.getSegmentAt(i)
     //   segment.sprites.forEach((sprite) => {
     //     sprite.source.setActive(false)
     //     sprite.source.setVisible(false)
     //   })
     // }
-  
-    // let baseSegment = this.scene.Segments.findSegment(this.scene.position)
-    // let trackLength = this.scene.Segments.segments.length - 1
-
-    // this.scene.Segments.segments.forEach((segment) => {
-    //   if (!(segment.index > baseSegment.index &&
-    //       (segment.index < (baseSegment.index + this.drawDistance) % trackLength)))
-    //   {
-    //     segment.sprites.forEach((sprite) => {
-    //       sprite.source.setActive(false)
-    //       sprite.source.setVisible(false)
-    //     })
-    //   }
-    // })
   }
 
 

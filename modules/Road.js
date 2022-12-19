@@ -34,9 +34,9 @@ export default class Road
     this.addHillCurveLeft(this.road.LENGTH.LONG, this.road.HILL.HIGH)
     this.addLowRollingHills()
     this.addHill(200, this.road.HILL.HIGH)
-    this.addDownhillToEnd()
     this.addSCurves()
     this.addStraight()
+    this.addDownhillToEnd()
 
     this.scene.Segments.segments[this.scene.Segments.findSegment(this.scene.playerZ).index + 2].color = this.scene.colors.START
     this.scene.Segments.segments[this.scene.Segments.findSegment(this.scene.playerZ).index + 3].color = this.scene.colors.START
@@ -121,27 +121,25 @@ export default class Road
 
   resetSprites ()
   {
-    /*
     let gap = 5
     for (let n = 0 ; n < this.scene.Segments.segments.length - gap ; n += gap)
     {
-      this.addSprite(n, 'atlas', 1.1)
-      this.addSprite(n, 'atlas', -1.1)
+      // this.addSprite(n, 'atlas', 1.1)
+      // this.addSprite(n, 'atlas', -1.1)
 
-      // for(let i = 0 ; i < 10 ; i++)
-      // {
-      //   this.addSprite(n, 'atlas', (i + 1.1))
-      //   this.addSprite(n, 'atlas', -(i + 1.1))
-      // }
+      for(let i = 0 ; i < 2 ; i++)
+      {
+        this.addSprite(n, 'atlas', (i + 1.1) + (Math.random() * 25))
+        this.addSprite(n, 'atlas', -(i + 1.1) - (Math.random() * 25))
+      }
     }
-    */
 
-    for(let n = 0 ; n < this.scene.Segments.segments.length - 5 ; n += 5) {
-      this.addSprite(n + Util.randomInt(0,2), 'atlas', 2.1 + (Math.random() * 25))
-      this.addSprite(n + Util.randomInt(0,2), 'atlas', -2.1 - (Math.random() * 25))
-      this.addSprite(n + Util.randomInt(0,2), 'atlas', 1.1 + (Math.random() * 5))
-      this.addSprite(n + Util.randomInt(0,2), 'atlas', -1.1 - (Math.random() * 5))
-    }
+    // for(let n = 0 ; n < this.scene.Segments.segments.length - 5 ; n += 5) {
+    //   this.addSprite(n + Util.randomInt(0,2), 'atlas', 2.1 + (Math.random() * 25))
+    //   this.addSprite(n + Util.randomInt(0,2), 'atlas', -2.1 - (Math.random() * 25))
+    //   this.addSprite(n + Util.randomInt(0,2), 'atlas', 1.1 + (Math.random() * 5))
+    //   this.addSprite(n + Util.randomInt(0,2), 'atlas', -1.1 - (Math.random() * 5))
+    // }
   }
 
   addHill (num, height)
