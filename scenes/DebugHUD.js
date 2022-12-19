@@ -118,6 +118,10 @@ export default class DebugHUD extends Phaser.Scene
               <label>Render Sprites:</label>
               <button id="debugRenderSprites">${this.Render.renderSprites}</button>
             </div>
+            <div class="debug-hud__item">
+              <label>Ortho Test:</label>
+              <button id="debugOrthoTest">${this.gameScene.orthoTest}</button>
+            </div>
           </div>
 
           <div class="debug-hud__item-group">
@@ -304,6 +308,18 @@ export default class DebugHUD extends Phaser.Scene
       .addEventListener('click', (e) => {
         this.Render.renderSprites = !this.Render.renderSprites
         document.getElementById(e.target.id).textContent = `${this.Render.renderSprites}`
+      })
+
+    document.getElementById('debugOrthoTest')
+      .addEventListener('click', (e) => {
+        if (this.gameScene.quadTest)
+        {
+          this.gameScene.quadTest.destroy()
+          this.gameScene.debugQuad.destroy()
+        }
+        this.gameScene.orthoTest = !this.gameScene.orthoTest
+        this.gameScene.runOrthoTest()
+        document.getElementById(e.target.id).textContent = `${this.gameScene.orthoTest}`
       })
   }
 

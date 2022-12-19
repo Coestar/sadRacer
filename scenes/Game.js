@@ -91,6 +91,7 @@ export default class Game extends Phaser.Scene
     this.frameNames     = null
     this.poolGroup      = null
 
+    this.orthoTest      = false
     this.quadTest       = null
   }
 
@@ -103,6 +104,8 @@ export default class Game extends Phaser.Scene
 
   create ()
   {
+
+
 
     this.atlasTexture   = this.textures.get('atlas')
     this.frameNames     = this.atlasTexture.getFrameNames()
@@ -171,6 +174,8 @@ export default class Game extends Phaser.Scene
 		})
 
     this.Road.reset()
+
+    this.runOrthoTest()
     
   }
 
@@ -193,6 +198,13 @@ export default class Game extends Phaser.Scene
     this.Render.clear()
     this.Render.all()
     this.playerUpdate(delta / 1000)
+
+
+    if (this.orthoTest)
+    {
+      this.debugQuad.clear();
+      this.debugQuad.lineStyle(1, 0x00ff00);
+    }
   }
 
   playerUpdate (dt)
@@ -270,13 +282,62 @@ export default class Game extends Phaser.Scene
   
   }
 
-  recalcCamera()
+  runOrthoTest ()
+  {
+    if (this.orthoTest)
+    {
+      // const vertices = [
+      //      0,   0,
+      //   1920,   0,
+      //   1920, 200,
+      //      0, 200
+      // ];
+
+      // corner verts around (from) center
+      // negative is left/down, positive right/up (I think)
+      // so if 1920 x 200
+      // -960 to 960
+      // 100 to -100
+      // To be honest, I still don't really get it
+      const vertices = [
+          -960, 100,    // tl
+          960, 100,     // tr
+          -960, -100,   // bl
+          960, -100     // br
+      ];
+
+      const uvs = [
+        0, 0,
+        1, 0,
+        0, 1,
+        1, 1
+      ];
+
+      const indicies = [ 0, 2, 1, 2, 3, 1 ];
+      
+      this.quadTest = this.add.mesh(this.cX, this.cY, 'quad_test');
+      this.quadTest.addVertices(vertices, uvs, indicies)
+      // this.quadTest.panZ(10);
+      this.quadTest.panZ(this.quadTest.height / (2 * Math.tan(Math.PI / 16)))
+      this.quadTest.setDepth(4001);
+      this.quadTest.setOrtho(this.quadTest.width, this.quadTest.height);
+
+      console.log(this.quadTest.width, this.quadTest.height)
+
+      this.debugQuad = this.add.graphics();
+      this.debugQuad.setDepth(4002);
+
+      this.quadTest.setDebug(this.debugQuad);
+    }
+  }
+
+  recalcCamera ()
   {
     this.cameraDepth  = this.uknFactor1 / Math.tan((this.fieldOfView/2) * Math.PI/180)
     this.playerZ      = this.cameraHeight * this.cameraDepth + this.uknFactor2
   }
 
-  recalcSpeeds()
+  recalcSpeeds ()
   { 
     this.accel          =  this.maxSpeed/5
     this.braking        = -this.maxSpeed

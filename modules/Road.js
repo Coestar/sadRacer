@@ -23,7 +23,9 @@ export default class Road
 
     this.scene.Segments.reset()
 
-    this.addHill(200, this.road.HILL.HIGH)
+    // this.addHill(200, this.road.HILL.HIGH)
+    this.addStraight()
+    this.addRabbitHills()
     this.addSCurves()
     this.addStraight()
     this.addLowRollingHills()
@@ -161,6 +163,24 @@ export default class Road
     num    = num    || this.road.LENGTH.MEDIUM
     height = height || this.road.HILL.MEDIUM
     this.addRoad(num, num, num, -this.road.CURVE.MEDIUM, height)
+  }
+
+  addRabbitHills ()
+  {
+    let num = 10
+    let height = 5
+    this.addRoad(num, num, num,  this.road.CURVE.EASY,  height)
+    this.addRoad(num, num, num,  this.road.CURVE.EASY, -height)
+    this.addRoad(num, num, num,  this.road.CURVE.EASY,  height)
+    this.addRoad(num, num, num,  this.road.CURVE.EASY, -height)
+    this.addRoad(num, num, num,  this.road.CURVE.EASY,  height)
+    this.addRoad(num, num, num,  this.road.CURVE.EASY, -height)
+    this.addRoad(num, num, num,  this.road.CURVE.EASY,  height)
+    this.addRoad(num, num, num,  this.road.CURVE.EASY, -height)
+    this.addRoad(num, num, num,  this.road.CURVE.EASY,  height)
+    this.addRoad(num, num, num,  this.road.CURVE.EASY, -height)
+    this.addRoad(num, num, num,  this.road.CURVE.EASY,  height)
+    this.addRoad(num, num, num,  this.road.CURVE.EASY, -height)
   }
 
   addLowRollingHills (num, height)
