@@ -1,4 +1,4 @@
-import Util from './Util.js'
+
 
 export default class Render
 {
@@ -42,32 +42,28 @@ export default class Render
         sprite.source.setVisible(false)
       })
     }
+  }
 
-    // let trackLength = this.scene.Segments.segments.length - 1
-    // let initial = this.scene.Segments.findSegmentPosition(this.scene.position)
-    // let finalClear = (trackLength - (initial + this.drawDistance))*-1
 
-    // for(let i = initial; i != finalClear; i--){
-    //   let segment = this.scene.Segments.getSegmentAt(i)
-    //   segment.sprites.forEach((sprite) => {
-    //     sprite.source.setActive(false)
-    //     sprite.source.setVisible(false)
-    //   })
-    // }
-  
-    // let baseSegment = this.scene.Segments.findSegment(this.scene.position)
-    // let trackLength = this.scene.Segments.segments.length - 1
+  project (p, cameraX, cameraY, cameraZ, cameraDepth, width, height, roadWidth)
+  {
+    p.camera.x     = (p.world.x || 0) - cameraX
+    p.camera.y     = (p.world.y || 0) - cameraY
+    p.camera.z     = (p.world.z || 0) - cameraZ
+    p.screen.scale = cameraDepth/p.camera.z
+    p.screen.x     = Math.round((width/2)  + (p.screen.scale * p.camera.x  * width/2))
+    p.screen.y     = Math.round((height/2) - (p.screen.scale * p.camera.y  * height/2))
+    p.screen.w     = Math.round(             (p.screen.scale * roadWidth   * width/2))
+  }
 
-    // this.scene.Segments.segments.forEach((segment) => {
-    //   if (!(segment.index > baseSegment.index &&
-    //       (segment.index < (baseSegment.index + this.drawDistance) % trackLength)))
-    //   {
-    //     segment.sprites.forEach((sprite) => {
-    //       sprite.source.setActive(false)
-    //       sprite.source.setVisible(false)
-    //     })
-    //   }
-    // })
+  percentRemaining (n, total)
+  {
+    return(n % total) / total;
+  }
+
+  exponentialFog (distance, density)
+  {
+    return 1 / (Math.pow(Math.E, (distance * distance * density)));
   }
 
 
@@ -77,9 +73,9 @@ export default class Render
   all ()
   {
     let baseSegment           = this.scene.Segments.findSegment(this.scene.position),
-        basePercent           = Util.percentRemaining(this.scene.position, this.scene.segmentLength),
+        basePercent           = this.percentRemaining(this.scene.position, this.scene.segmentLength),
         playerSegment         = this.scene.Segments.findSegment(this.scene.position + this.scene.playerZ),
-        playerPercent         = Util.percentRemaining(this.scene.position + this.scene.playerZ, this.scene.segmentLength),
+        playerPercent         = this.percentRemaining(this.scene.position + this.scene.playerZ, this.scene.segmentLength),
         width                 = this.scene.width,
         height                = this.scene.height,
         cameraHeight          = this.scene.cameraHeight,
@@ -93,18 +89,18 @@ export default class Render
         maxy                  = height,
         n, segment
         
-    this.scene.playerY    = Util.interpolate(playerSegment.p1.world.y, playerSegment.p2.world.y, playerPercent)
+    this.scene.playerY    = Phaser.Math.Linear(playerSegment.p1.world.y, playerSegment.p2.world.y, playerPercent)
     
     // Segment render loop (away from camera)
     for(n = 0 ; n < this.drawDistance ; n++) {
   
       segment         = this.scene.Segments.segments[(baseSegment.index + n) % this.scene.Segments.segments.length];
       segment.looped  = segment.index < baseSegment.index;
-      segment.fog     = Util.exponentialFog(n/this.drawDistance, this.fogDensity);
+      segment.fog     = this.exponentialFog(n/this.drawDistance, this.fogDensity);
       segment.clip    = maxy;
   
-      Util.project(segment.p1, (playerX * roadWidth) - x, this.scene.playerY + cameraHeight, position - (segment.looped ? trackLength : 0), cameraDepth, width, height, roadWidth);
-      Util.project(segment.p2, (playerX * roadWidth) - x - dx, this.scene.playerY + cameraHeight, position - (segment.looped ? trackLength : 0), cameraDepth, width, height, roadWidth);
+      this.project(segment.p1, (playerX * roadWidth) - x, this.scene.playerY + cameraHeight, position - (segment.looped ? trackLength : 0), cameraDepth, width, height, roadWidth);
+      this.project(segment.p2, (playerX * roadWidth) - x - dx, this.scene.playerY + cameraHeight, position - (segment.looped ? trackLength : 0), cameraDepth, width, height, roadWidth);
 
       x = x + dx;
       dx = dx + segment.curve;
@@ -273,39 +269,30 @@ export default class Render
 
     let clipH = clipY ? Math.max(0, destY + destH - clipY) : 0
 
-    // if (clipH < destH)
-    // {
-      // On Screen
-      if (!sprite.source.active)
-      {
-        sprite.source.alpha = 0
-        sprite.scaleIn = 0
-      }
-      if (sprite.source.alpha < 1) {
-        sprite.source.alpha += 0.05
-      }
-      if (sprite.scaleIn < 1) {
-        sprite.scaleIn += 0.05
-      }
+    // On Screen
+    if (!sprite.source.active)
+    {
+      sprite.source.alpha = 0
+      sprite.scaleIn = 0
+    }
+    if (sprite.source.alpha < 1) {
+      sprite.source.alpha += 0.05
+    }
+    if (sprite.scaleIn < 1) {
+      sprite.scaleIn += 0.05
+    }
 
 
-      sprite.source.x = destX
-      sprite.source.y = destY
-      sprite.source.displayWidth = destW
-      sprite.source.displayHeight = destH
-      sprite.source.setCrop(0, 0, spriteW, spriteH - (spriteH * clipH / destH))
-      let fixDepth = 1999 - n
-      sprite.source.setDepth(fixDepth)
-      if (fixDepth < 0) { console.log(fixDepth) }
-      sprite.source.setVisible(true)
-      sprite.source.setActive(true)
-      
-    // }
-    // else
-    // {
-    //   sprite.source.setVisible(false)
-    //   sprite.source.setActive(false)
-    // }
+    sprite.source.x = destX
+    sprite.source.y = destY
+    sprite.source.displayWidth = destW
+    sprite.source.displayHeight = destH
+    sprite.source.setCrop(0, 0, spriteW, spriteH - (spriteH * clipH / destH))
+    let fixDepth = 1999 - n
+    sprite.source.setDepth(fixDepth)
+    if (fixDepth < 0) { console.log(fixDepth) }
+    sprite.source.setVisible(true)
+    sprite.source.setActive(true)
   }
 
 
@@ -320,18 +307,18 @@ export default class Render
         cameraDepth   = this.scene.cameraDepth,
         playerZ       = this.scene.playerZ,
         speedPercent  = this.scene.speed / this.scene.maxSpeed,
-        playerPercent = Util.percentRemaining(this.scene.position + playerZ, this.scene.segmentLength),
+        playerPercent = this.percentRemaining(this.scene.position + playerZ, this.scene.segmentLength),
         y1            = segment.p1.camera.y,
         y2            = segment.p2.camera.y,
         curve         = segment.curve,
         scale         = cameraDepth / playerZ,
         destX         = width / 2,
-        destY         = (height / 2) - (cameraDepth / playerZ * Util.interpolate(y1, y2, playerPercent) * height / 2),
+        destY         = (height / 2) - (cameraDepth / playerZ * Phaser.Math.Linear(y1, y2, playerPercent) * height / 2),
         steer         = this.scene.speed * (this.scene.keyLeft ? -1 : this.scene.keyRight ? 1 : 0),
         updown        = y2 - y1,
-        // bounce        = (1.5 * Math.random() * speedPercent * resolution) * Util.randomChoice([-1,1])
-        bounceCar     = (1.5 * Math.random() * speedPercent) * Util.randomChoice([-1,1]),
-        bounceWheels  = (2.5 * Math.random() * speedPercent) * Util.randomChoice([-1,1])
+        // bounce        = (1.5 * Math.random() * speedPercent * resolution) * Phaser.Math.Between(-1, 1)
+        bounceCar     = (1.5 * Math.random() * speedPercent) * Phaser.Math.Between(-1, 1),
+        bounceWheels  = (2.5 * Math.random() * speedPercent) * Phaser.Math.Between(-1, 1)
 
     // console.log(`steer: ${steer}, updown: ${updown}, curve: ${curve}`)
 

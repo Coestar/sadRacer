@@ -15,7 +15,7 @@ const config = {
     autoCenter: Phaser.Scale.CENTER_BOTH
   },
   scene           : [ Preload, Game, DebugHUD ],
-  pixelArt        : false,
+  pixelArt        : true,
   backgroundColor : 0x000000,
   dom             : {
     createContainer: true

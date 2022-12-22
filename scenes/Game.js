@@ -1,6 +1,4 @@
-import Util from '../modules/Util.js'
 import Render from '../modules/Render.js'
-import RenderNew from '../modules/RenderNew.js'
 import Road from '../modules/Road.js'
 import Segments from '../modules/Segments.js'
 
@@ -41,9 +39,9 @@ export default class Game extends Phaser.Scene
     this.offRoadLimit  =  this.maxSpeed/4  // limit when off road deceleration no longer applies (e.g. you can always go at least this speed even when off road)
     this.inertia       = 0//0.15 // centrifugal force multiplier when going around curves
     
-    this.debugMaxY      = 0
+    this.debugMaxY    = 0
 
-    this.cameraZoom = 1.2
+    this.cameraZoom   = 1
     
     this.autoDrive    = true
 
@@ -93,6 +91,11 @@ export default class Game extends Phaser.Scene
 
     this.orthoTest      = false
     this.quadTest       = null
+    this.quadVertices   = null
+    this.quadUVs        = null
+    this.quadIndicies   = null
+    this.vertCache      = null
+    this.meshText       = null
   }
 
   init ()
@@ -114,9 +117,9 @@ export default class Game extends Phaser.Scene
     this.debugHUD = this.scene.get('debug-hud')
 
     this.bg_sky = this.add.image(this.cX, this.cY, 'sky').setDepth(-4)
-    this.bg_clouds = this.add.tileSprite(0, 0, this.width, this.height, 'clouds').setOrigin(0).setDepth(-3)
-    this.bg_hills = this.add.tileSprite(0, 0, this.width, this.height, 'hills').setOrigin(0).setDepth(-2)
-    this.bg_trees = this.add.tileSprite(0, 0, this.width, this.height, 'trees').setOrigin(0).setDepth(-1)
+    this.bg_clouds = this.add.tileSprite(0, 0, this.width, this.height, 'wide_bg_test').setOrigin(0).setDepth(-3)//.setTileScale(3)
+    this.bg_hills = this.add.tileSprite(0, 0, this.width, this.height, 'far_hills_test').setOrigin(0).setDepth(-2)
+    this.bg_trees = this.add.tileSprite(0, 0, this.width, this.height, 'near_hills_test').setOrigin(0).setDepth(-1)
 
     this.puffs = this.add.particles('puff')
     this.puffs.createEmitter({
@@ -177,6 +180,7 @@ export default class Game extends Phaser.Scene
 
     this.runOrthoTest()
     
+    
   }
 
   update (time, delta)
@@ -204,7 +208,20 @@ export default class Game extends Phaser.Scene
     {
       this.debugQuad.clear();
       this.debugQuad.lineStyle(1, 0x00ff00);
+
+      this.updateUVs()
     }
+  }
+
+  // with looping
+  increase (start, increment, max)
+  {
+    var result = start + increment;
+    while (result >= max)
+      result -= max;
+    while (result < 0)
+      result += max;
+    return result;
   }
 
   playerUpdate (dt)
@@ -214,7 +231,7 @@ export default class Game extends Phaser.Scene
     let speedPercent  = this.speed/this.maxSpeed
     let dx            = dt * 2 * speedPercent // at top speed, should be able to cross from left to right (-1 to +1) in 1 second
 
-    this.position = Util.increase(this.position, dt * this.speed, this.trackLength)
+    this.position = this.increase(this.position, dt * this.speed, this.trackLength)
   
 
     let centerGap = 0.05
@@ -253,11 +270,11 @@ export default class Game extends Phaser.Scene
     // console.log(factor * 100)
 
     // this.cameras.main.setAngle(Phaser.Math.Clamp(factor * 100, -6, 6))
-    this.cameras.main.setAngle(Phaser.Math.Clamp(playerSegment.curve, -8, 8))
+    // this.cameras.main.setAngle(Phaser.Math.Clamp(playerSegment.curve, -8, 8))
 
 
     this.bg_clouds.tilePositionX += this.cloudSpeed * 100
-    this.bg_clouds.tilePositionX += (dx * 10000 * speedPercent * playerSegment.curve * this.cloudSpeed)
+    this.bg_clouds.tilePositionX += dx * 10000 * speedPercent * playerSegment.curve * this.cloudSpeed
     this.bg_hills.tilePositionX += (dx * 10000 * speedPercent * playerSegment.curve * this.hillSpeed)
     this.bg_trees.tilePositionX += (dx * 10000 * speedPercent * playerSegment.curve * this.treeSpeed)
 
@@ -268,66 +285,91 @@ export default class Game extends Phaser.Scene
     this.playerX = this.playerX - (dx * speedPercent * playerSegment.curve * this.inertia)
   
     if (this.keyFaster)
-      this.speed = Util.accelerate(this.speed, this.accel, dt)
+      this.speed = this.accelerate(this.speed, this.accel, dt)
     else if (this.keySlower)
-      this.speed = Util.accelerate(this.speed, this.braking, dt)
+      this.speed = this.accelerate(this.speed, this.braking, dt)
     else
-      this.speed = Util.accelerate(this.speed, this.decel, dt)
+      this.speed = this.accelerate(this.speed, this.decel, dt)
   
     if (((this.playerX < -1) || (this.playerX > 1)) && (this.speed > this.offRoadLimit))
-      this.speed = Util.accelerate(this.speed, this.offRoadDecel, dt)
+      this.speed = this.accelerate(this.speed, this.offRoadDecel, dt)
   
-    this.playerX = Util.limit(this.playerX, -2, 2) // dont ever let player go too far out of bounds
-    this.speed   = Util.limit(this.speed, 0, this.maxSpeed) // or exceed maxSpeed
+    this.playerX = Phaser.Math.Clamp(this.playerX, -2, 2) // dont ever let player go too far out of bounds
+    this.speed   = Phaser.Math.Clamp(this.speed, 0, this.maxSpeed) // or exceed maxSpeed
   
+  }
+
+  accelerate (v, accel, dt)
+  {
+    return v + (accel * dt);
+  }
+
+  updateUVs ()
+  {
+    let speedPercent  = this.speed/this.maxSpeed
+    let modU = 0.00 * speedPercent
+    let modV = -0.1 * speedPercent
+
+    this.quadTest.vertices.forEach((vert, i) => {
+      vert.u += modU
+      vert.v += modV
+    })
+
+    // this.meshText.setText(`
+    // ${this.quadTest.vertices[0].u},
+    // ${this.quadTest.vertices[0].v},
+    // ${this.quadTest.vertices[1].u},
+    // ${this.quadTest.vertices[1].v},
+    // ${this.quadTest.vertices[2].u},
+    // ${this.quadTest.vertices[2].v},
+    // ${this.quadTest.vertices[3].u},
+    // ${this.quadTest.vertices[3].v},
+    // ${this.quadTest.vertices[4].u},
+    // ${this.quadTest.vertices[4].v},
+    // ${this.quadTest.vertices[5].u},
+    // ${this.quadTest.vertices[5].v}
+    // `)
   }
 
   runOrthoTest ()
   {
     if (this.orthoTest)
     {
-      // const vertices = [
-      //      0,   0,
-      //   1920,   0,
-      //   1920, 200,
-      //      0, 200
-      // ];
-
-      // corner verts around (from) center
-      // negative is left/down, positive right/up (I think)
-      // so if 1920 x 200
-      // -960 to 960
-      // 100 to -100
-      // To be honest, I still don't really get it
-      const vertices = [
+      this.quadVertices = [
           -960, 100,    // tl
           960, 100,     // tr
           -960, -100,   // bl
           960, -100     // br
       ];
 
-      const uvs = [
+      this.quadUVs = [
         0, 0,
-        1, 0,
+        6.5, 0,
         0, 1,
-        1, 1
+        6.5, 1
       ];
 
-      const indicies = [ 0, 2, 1, 2, 3, 1 ];
+      this.quadIndicies = [ 0, 2, 1, 2, 3, 1 ];
       
-      this.quadTest = this.add.mesh(this.cX, this.cY, 'quad_test');
-      this.quadTest.addVertices(vertices, uvs, indicies)
-      // this.quadTest.panZ(10);
+      this.quadTest = this.add.mesh(this.cX, this.cY, 'colorgrid');
+      this.quadTest.addVertices(this.quadVertices, this.quadUVs, this.quadIndicies)
       this.quadTest.panZ(this.quadTest.height / (2 * Math.tan(Math.PI / 16)))
       this.quadTest.setDepth(4001);
       this.quadTest.setOrtho(this.quadTest.width, this.quadTest.height);
-
-      console.log(this.quadTest.width, this.quadTest.height)
 
       this.debugQuad = this.add.graphics();
       this.debugQuad.setDepth(4002);
 
       this.quadTest.setDebug(this.debugQuad);
+
+      console.log(this.quadTest.vertices)
+      
+      this.vertCache = JSON.parse(JSON.stringify(this.quadTest.vertices));
+      console.log(this.vertCache)
+
+      // this.meshText = this.add.text(this.cX, this.cY + 300, 'HELLO', { fontSize: '20px' })
+      // this.meshText.setDepth(4001)
+      // this.meshText.setOrigin(0.5)
     }
   }
 

@@ -1,4 +1,4 @@
-import Util from './Util.js'
+
 
 export default class Road
 {
@@ -58,24 +58,34 @@ export default class Road
   addRoad (enter, hold, leave, curve, y)
   {
     let startY  = this.scene.Segments.lastY()
-    let endY    = startY + (Util.toInt(y, 0) * this.scene.segmentLength)
+    let endY    = startY + (y * this.scene.segmentLength)
     let n
     let total   = enter + hold + leave
 
     for(n = 0 ; n < enter ; n++)
     {
-      this.scene.Segments.add(Util.easeIn(0, curve, n/enter), Util.easeInOut(startY, endY, n/total))
+      this.scene.Segments.add(this.easeIn(0, curve, n/enter), this.easeInOut(startY, endY, n/total))
     }
 
     for(n = 0 ; n < hold  ; n++)
     {
-      this.scene.Segments.add(curve, Util.easeInOut(startY, endY, (enter+n)/total))
+      this.scene.Segments.add(curve, this.easeInOut(startY, endY, (enter+n)/total))
     }
 
     for(n = 0 ; n < leave ; n++)
     {
-      this.scene.Segments.add(Util.easeInOut(curve, 0, n/leave), Util.easeInOut(startY, endY, (enter+hold+n)/total))
+      this.scene.Segments.add(this.easeInOut(curve, 0, n/leave), this.easeInOut(startY, endY, (enter+hold+n)/total))
     }
+  }
+
+  easeIn (a, b, percent)
+  {
+    return a + (b - a) * Phaser.Math.Easing.Sine.In(percent); //Math.pow(percent, 2);
+  }
+
+  easeInOut (a, b, percent)
+  {
+    return a + (b - a) * Phaser.Math.Easing.Sine.InOut(percent); //((-Math.cos(percent * Math.PI) / 2) + 0.5);
   }
 
   addSprite (n, sprite, offset)
@@ -110,8 +120,8 @@ export default class Road
       'billboard09',
     ]
 
-    let randomFrame = manualFrames[Util.randomInt(0, manualFrames.length - 1)]
-    // let randomFrame = this.frameNames[Util.randomInt(0, this.frameNames.length - 1)]
+    let randomFrame = manualFrames[Phaser.Math.Between(0, manualFrames.length - 1)]
+    // let randomFrame = this.frameNames[Phaser.Math.Between(0, this.frameNames.length - 1)]
     let item = this.scene.poolGroup.get(0, 0, sprite)
     item.setFrame(randomFrame)
     // item.setFrame('column')
@@ -137,10 +147,10 @@ export default class Road
     }
 
     // for(let n = 0 ; n < this.scene.Segments.segments.length - 5 ; n += 5) {
-    //   this.addSprite(n + Util.randomInt(0,2), 'atlas', 2.1 + (Math.random() * 25))
-    //   this.addSprite(n + Util.randomInt(0,2), 'atlas', -2.1 - (Math.random() * 25))
-    //   this.addSprite(n + Util.randomInt(0,2), 'atlas', 1.1 + (Math.random() * 5))
-    //   this.addSprite(n + Util.randomInt(0,2), 'atlas', -1.1 - (Math.random() * 5))
+    //   this.addSprite(n + Phaser.Math.Between(0,2), 'atlas', 2.1 + (Math.random() * 25))
+    //   this.addSprite(n + Phaser.Math.Between(0,2), 'atlas', -2.1 - (Math.random() * 25))
+    //   this.addSprite(n + Phaser.Math.Between(0,2), 'atlas', 1.1 + (Math.random() * 5))
+    //   this.addSprite(n + Phaser.Math.Between(0,2), 'atlas', -1.1 - (Math.random() * 5))
     // }
   }
 
@@ -216,23 +226,23 @@ export default class Road
   addStraight (num)
   {
     num = num || this.road.LENGTH.MEDIUM
-    this.addRoad(num, num, num, 0)
+    this.addRoad(num, num, num, 0, 0)
   }
 
   addCurve (num, curve)
   {
     num    = num    || this.road.LENGTH.MEDIUM;
     curve  = curve  || this.road.CURVE.MEDIUM;
-    this.addRoad(num, num, num, curve);
+    this.addRoad(num, num, num, curve, 0);
   }
   
   addSCurves ()
   {
-    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,  -this.road.CURVE.EASY);
-    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,   this.road.CURVE.MEDIUM);
-    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,   this.road.CURVE.EASY);
-    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,  -this.road.CURVE.EASY);
-    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,  -this.road.CURVE.MEDIUM);
+    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,  -this.road.CURVE.EASY, 0);
+    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,   this.road.CURVE.MEDIUM, 0);
+    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,   this.road.CURVE.EASY, 0);
+    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,  -this.road.CURVE.EASY, 0);
+    this.addRoad(this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM, this.road.LENGTH.MEDIUM,  -this.road.CURVE.MEDIUM, 0);
   }
 
 }

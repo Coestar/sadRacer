@@ -14,6 +14,9 @@ export default class Preload extends Phaser.Scene
     this.load.image('clouds', 'assets/clouds.png')
     this.load.image('hills', 'assets/hills.png')
     this.load.image('trees', 'assets/trees.png')
+    this.load.image('wide_bg_test', 'assets/wide_bg_test.png')
+    this.load.image('far_hills_test', 'assets/far_hills_test.png')
+    this.load.image('near_hills_test', 'assets/near_hills_test.png')
 
     // Sprites
     this.load.spritesheet('car_sheet', 'assets/car_sheet.png', {
@@ -30,6 +33,7 @@ export default class Preload extends Phaser.Scene
     this.load.image('puff', 'assets/puff.png')
     this.load.atlas('atlas', 'assets/atlas_test.png', 'assets/atlas_test.json')
     this.load.image('quad_test', 'assets/quad_test.png')
+    this.load.image('colorgrid', 'assets/colorgrid.png')
   }
 
   progressDisplay ()
