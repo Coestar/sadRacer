@@ -15,6 +15,13 @@ export default class Segments
    */
   reset ()
   {
+    this.segments.forEach((segment) => {
+      segment.sprites.forEach((sprite) => {
+        sprite.source.setActive(false);
+        sprite.source.setVisible(false);
+      });
+      segment.sprites = [];
+    });
     this.segments = []
   }
 
@@ -42,7 +49,7 @@ export default class Segments
           y: y,
           z: (n + 1 ) * this.scene.segmentLength
         },
-        camera: {},   
+        camera: {},
         screen: {}
       },
       curve: curve,
